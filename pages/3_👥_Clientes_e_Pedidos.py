@@ -32,6 +32,10 @@ df_status = get_status_pedidos(pedidos, clientes)
 # Transforma "sao paulo" em "Sao Paulo"
 df_clientes['customer_city'] = df_clientes['customer_city'].str.title()
 
+# Título
+st.title("👥 Clientes e Pedidos")
+st.caption("Distribuição geográfica de clientes, evolução da base e status dos pedidos.")
+
 # ==========================================
 # 🔍 FILTROS GLOBAIS - CLIENTES
 # ==========================================
@@ -58,17 +62,10 @@ if estado_selecionado:
     df_clientes = df_clientes[df_clientes['customer_state'].isin(estado_selecionado)]
     df_status   = df_status[df_status['customer_state'].isin(estado_selecionado)] # <-- Adicionado
 
-st.markdown("---")
-# A partir daqui, seguem os seus gráficos e KPIs de Clientes...
-
-# Título
-st.title("👥 Análise e Distribuição de Clientes")
-st.markdown("---")
-
 # ==========================================
 # 1. KPIs (Topo)
 # ==========================================
-st.subheader("📊 Indicadores de Clientes")
+st.subheader("Indicadores Gerais")
 col1, col2, col3, col4 = st.columns(4)
 
 total_clientes   = df_clientes['total_clientes'].sum()
@@ -128,7 +125,7 @@ st.markdown("---")
 # ==========================================
 # 3. GRÁFICO DE BARRAS (Cidades) COM RÓTULOS
 # ==========================================
-st.subheader("🏙️ Top 10 Clientes por Cidade")
+st.subheader("Top 10 Cidades por Número de Clientes")
 
 df_cidade_top = (df_clientes.groupby('customer_city')
                               .agg(total_clientes = ('total_clientes', 'sum'))
@@ -156,7 +153,7 @@ st.markdown("---")
 # ==========================================
 # 4. GRÁFICO DE LINHAS (Evolução)
 # ==========================================
-st.subheader("📈 Evolução Mensal de Clientes")
+st.subheader("Evolução Acumulada da Base de Clientes")
 
 df_evolucao = (df_clientes.groupby(['ano', 'data_mes'])
                            .agg(total_clientes = ('total_clientes', 'sum'))
@@ -170,7 +167,10 @@ fig_evolucao = px.line(
     y='total_acumulado',
     markers=True,
     text='total_acumulado', # Adiciona rótulos nos pontos da linha
-    labels={'data_mes': 'Mês', 'total_acumulado': 'Total Acumulado de Clientes'}
+    labels={
+    'data_mes': 'Mês',
+    'total_acumulado': 'Clientes Acumulados'
+    } 
 )
 fig_evolucao.update_traces(textposition='top center') # Posiciona os números acima da linha
 fig_evolucao.update_layout(
@@ -184,7 +184,8 @@ st.markdown("---")
 # ==========================================
 # 5. TABELA FINAL (Com Mapa de Calor)
 # ==========================================
-st.subheader("📋 Pedidos por Status (exceto Entregues)")
+st.subheader("Pedidos por Status")
+st.caption("Detalhamento dos pedidos não entregues.")
 
 df_status_tab = (df_clientes[df_clientes['order_status'] != 'delivered']
                   .groupby('order_status')

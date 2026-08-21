@@ -30,6 +30,13 @@ pedidos, itens, produtos, clientes = carregar_dados()
 # Chamando a view (agora a variável 'clientes' existe e tem os dados!)
 df_categorias = get_top_categorias(pedidos, itens, produtos, clientes)
 
+
+# Título
+st.title("📊 Desempenho de Categorias") #📊 
+st.caption("Análise de receita, volume de vendas e ticket médio por categoria.")
+
+#st.markdown("---")
+
 # ==========================================
 # 🔍 FILTROS GLOBAIS - CATEGORIAS
 # ==========================================
@@ -61,15 +68,14 @@ st.markdown("---")
 # A partir daqui, seguem os seus gráficos e KPIs de Categorias...
 
 
-# Título
-st.title("📊 Desempenho das Categorias")
-st.markdown("---")
 
 # ==========================================
 # TRATAMENTO DE TEXTO (Title Case)
 # ==========================================
 # Troca '_' por espaço e coloca a primeira letra em maiúscula (ex: cama_mesa_banho -> Cama Mesa Banho)
 df_categorias['product_category_name'] = df_categorias['product_category_name'].str.replace('_', ' ').str.title()
+
+st.subheader("Indicadores de Categorias")
 
 # ==========================================
 # 1. KPIs (Topo)
@@ -88,8 +94,8 @@ else:
     ticket_medio = 0
     preco_medio_item = 0
 
-col1.metric("Receita Total",        f"R$ {receita_total:,.2f}")
-col2.metric("Ticket Médio",         f"R$ {ticket_medio:,.2f}")
+col1.metric("Faturamento Total",        f"R$ {receita_total:,.2f}")
+col2.metric("Ticket Médio por Pedido",         f"R$ {ticket_medio:,.2f}")
 col3.metric("Itens Vendidos",       f"{total_itens:,}")
 col4.metric("Preço Médio por Item", f"R$ {preco_medio_item:,.2f}")
 
@@ -98,7 +104,7 @@ st.markdown("<br>", unsafe_allow_html=True) # Espaçamento extra
 # ==========================================
 # 2. GRÁFICO DE BARRAS COM RÓTULOS
 # ==========================================
-st.subheader("🏆 Top 10 Categorias por Receita")
+st.subheader("Top 10 Categorias por Faturamento") #🏆
 
 df_cat = (df_categorias.groupby('product_category_name')
                        .agg(
@@ -134,7 +140,7 @@ st.markdown("---")
 # ==========================================
 # 3. GRÁFICO DE LINHAS COM RÓTULOS
 # ==========================================
-st.subheader("📈 Evolução Mensal do Ticket Médio")
+st.subheader("Evolução Mensal do Ticket Médio por Pedido") #📈 
 
 df_ticket = (df_categorias.groupby(['data_mes', 'ano'])
                            .agg(
@@ -166,7 +172,7 @@ st.markdown("---")
 # 4. TABELA DE DADOS
 # ==========================================
 # Tabela com mapa de calor
-st.subheader("📋 Resumo por Categoria")
+st.subheader("Resumo por Categoria")#📋 
 
 df_tabela = (df_categorias.groupby('product_category_name')
              .agg(
@@ -185,11 +191,11 @@ df_tabela['preco_medio_item'] = (df_tabela['receita_total'] / df_tabela['total_i
 # ==========================================
 df_tabela_exibicao = df_tabela.rename(columns={
     'product_category_name': 'Categoria',
-    'receita_total': 'Receita Total',
+    'receita_total': 'Faturamento',
     'total_pedidos': 'Total de Pedidos',
     'total_itens': 'Total de Itens',
     'ticket_medio': 'Ticket Médio',
-    'preco_medio_item': 'Preço Médio/Item'
+    'preco_medio_item': 'Preço Médio por Item'
 })
 
 # Usamos o df_tabela_exibicao no st.dataframe e atualizamos os nomes no subset

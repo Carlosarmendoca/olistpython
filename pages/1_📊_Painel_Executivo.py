@@ -32,8 +32,10 @@ df_receita    = get_receita_mensal(pedidos, pagamentos, clientes)
 df_categorias = get_top_categorias(pedidos, itens, produtos, clientes)
 
 # Título
+# st.title("🛒 Painel Executivo de Vendas")
+# st.markdown("---")
 st.title("🛒 Painel Executivo de Vendas")
-st.markdown("---")
+st.caption("Visão geral de receita, pedidos, desempenho regional e logística.")
 
 # ==========================================
 # 1. FILTRO GLOBAL DE TEMPO (Ano)
@@ -72,7 +74,7 @@ else:
 # ==========================================
 # 3. KPIs (Topo) - Usando o df_kpi!
 # ==========================================
-st.subheader("📊 Indicadores Gerais")
+st.subheader("Indicadores Gerais") #📊 
 col1, col2, col3, col4 = st.columns(4)
 
 # Tratamento de erro caso o filtro retorne vazio
@@ -94,7 +96,9 @@ st.markdown("<br>", unsafe_allow_html=True) # Espaçamento extra
 # ==========================================
 # 4. MAPA DO BRASIL
 # ==========================================
-st.subheader("🗺️ Receita por Estado")
+# st.subheader("🗺️ Faturamento por Estado")
+st.subheader("Faturamento por Estado")
+st.caption("Clique em um estado para filtrar os indicadores e análises abaixo.")
 
 # O mapa CONTINUA usando o df_estado (que tem todos os estados do ano selecionado).
 # Se usássemos o df_kpi aqui, o mapa sumiria com o resto do Brasil!
@@ -137,7 +141,8 @@ evento_mapa = st.plotly_chart(
 # 5. FILTRO DOS GRÁFICOS ABAIXO DO MAPA
 # ==========================================
 if estado_selecionado_mapa:
-    st.info(f"📍 Exibindo dados filtrados para: **{estado_selecionado_mapa}**. Dê um duplo clique no mapa ou use a borracha no canto superior direito para remover o filtro.")
+    st.info(f"📍 Estado selecionado: **{estado_selecionado_mapa}**. " 
+            "Clique novamente no estado para retornar à visão nacional.")
     
     # Cruzamento de filtros (Cross-Filtering) para Receita Mensal e Categorias
     df_categorias = df_categorias[df_categorias['customer_state'] == estado_selecionado_mapa]
@@ -148,7 +153,7 @@ st.markdown("---")
 # ==========================================
 # 6. GRÁFICO DE BARRAS (Largura Total)
 # ==========================================
-st.subheader("🏆 Top 10 Categorias por Pedidos")
+st.subheader("Top 10 Categorias por Pedidos") #🏆 
 
 df_cat = (df_categorias.groupby('product_category_name')
                        .agg(
@@ -191,7 +196,7 @@ st.markdown("---")
 # ==========================================
 # 7. LINHA DO TEMPO (Largura Total)
 # ==========================================
-st.subheader("📈 Evolução da Receita Mensal")
+st.subheader("📈 Evolução Mensal do Faturamento")
 
 # Prevenção de erro caso o estado clicado não tenha histórico
 if not df_receita.empty:

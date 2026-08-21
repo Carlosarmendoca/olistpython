@@ -35,7 +35,7 @@ def get_receita_mensal(pedidos, pagamentos, clientes): # <-- Adicionado 'cliente
 
     # Variação MoM (calculada por estado agora)
     resultado['receita_mes_anterior'] = (
-        resultado.groupby(['customer_state', 'ano'])['receita_total'].shift(1)
+        resultado.groupby('customer_state')['receita_total'].shift(1)
     )
 
     resultado['variacao_mom_pct'] = (
