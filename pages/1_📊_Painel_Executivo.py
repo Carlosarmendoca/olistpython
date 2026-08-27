@@ -2,6 +2,7 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 import sys
+import numpy as np
 sys.path.append('.')
 
 from views.vw_receita_mensal     import get_receita_mensal
@@ -222,3 +223,131 @@ if not df_receita.empty:
     st.plotly_chart(fig_receita, use_container_width=True)
 else:
     st.warning("Não há dados de receita para o estado selecionado.")
+
+
+## ==========================================
+# 8. ANÁLISE MoM — MONTH OVER MONTH
+# ==========================================
+
+st.markdown("---")
+
+st.subheader("📊 Variação Mensal da Receita (MoM)")
+
+st.caption("Compara a receita de cada mês com o mês calendário imediatamente anterior.")
+
+
+# ==========================================
+# PREPARAÇÃO DA ANÁLISE
+# ==========================================
+
+if estado_selecionado_mapa:
+
+    # ------------------------------------------------------
+    # ESTADO SELECIONADO
+    # ------------------------------------------------------
+    #
+    # O MoM já foi calculado na vw_receita_mensal.
+    # Portanto, apenas utilizamos os valores da view.
+    #
+
+    df_mom = (
+        df_receita[
+            [
+                'ano',
+                'mes',
+                'mes_nome',
+                'ano_mes',
+                'receita_total',
+                'receita_mes_anterior',
+                'variacao_mom_pct'
+            ]
+        ]
+        .copy()
+        .sort_values(['ano', 'mes'])
+    )
+
+else:
+
+    # ------------------------------------------------------
+    # BRASIL
+    # ------------------------------------------------------
+    #
+    # A view possui granularidade Estado × Mês.
+    #
+    # Para obter o Brasil, primeiro consolidamos a receita
+    # de todos os estados.
+    #
+    # Depois calculamos o MoM sobre o total Brasil.
+    #
+
+    df_mom = (df_receita.groupby(
+            ['ano', 'mes', 'mes_nome', 'ano_mes'],
+            as_index=False).agg(receita_total=('receita_total', 'sum')
+        ).sort_values(['ano', 'mes'])
+    )
+
+    # Receita do mês calendário anterior
+    df_mom['receita_mes_anterior'] = (
+        df_mom['receita_total'].shift(1))
+
+    # Calculando MoM Brasil
+    df_mom['variacao_mom_pct'] = np.where(
+        df_mom['receita_mes_anterior'] > 0,
+        (
+            (df_mom['receita_total']- df_mom['receita_mes_anterior'])
+            / df_mom['receita_mes_anterior'] * 100
+        ), np.nan).round(2)
+
+
+# ==========================================
+# 9. PREPARAÇÃO DA TABELA
+# ==========================================
+
+df_mom['Mês'] = (df_mom['mes_nome']+ "/" + df_mom['ano'].astype(str))
+
+df_mom_tabela = (df_mom[
+        [
+            'Mês',
+            'receita_total',
+            'receita_mes_anterior',
+            'variacao_mom_pct'
+        ]
+    ].rename(
+        columns={
+            'receita_total': 'Receita',
+            'receita_mes_anterior': 'Receita Mês Anterior',
+            'variacao_mom_pct': 'MoM (%)'
+        }
+    )
+)
+
+
+# ==========================================
+# 10. EXIBIÇÃO DA TABELA
+# ==========================================
+
+if estado_selecionado_mapa:
+    st.caption( f"📍 Análise MoM do estado **{estado_selecionado_mapa}**" )
+else:
+    st.caption("🌎 Análise MoM do Brasil")
+
+
+st.dataframe(
+    df_mom_tabela,
+    use_container_width=True,
+    hide_index=True,
+    column_config={
+        'Mês': st.column_config.TextColumn('Mês'),
+        'Receita': st.column_config.NumberColumn(
+            'Receita',
+            format='R$ %.2f'),
+
+        'Receita Mês Anterior': st.column_config.NumberColumn(
+            'Receita Mês Anterior',
+            format='R$ %.2f'),
+
+        'MoM (%)': st.column_config.NumberColumn(
+            'MoM (%)',
+            format='%.2f%%')
+    }
+)
