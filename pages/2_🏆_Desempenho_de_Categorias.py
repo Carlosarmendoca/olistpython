@@ -82,16 +82,20 @@ st.subheader("Indicadores de Categorias")
 # ==========================================
 col1, col2, col3, col4 = st.columns(4)
 
-receita_total    = round(df_categorias['receita_total'].sum(), 2)
-total_pedidos    = df_categorias['total_pedidos'].sum()
-total_itens      = df_categorias['total_itens'].sum()
+receita_total = round(df_categorias['receita_total'].sum(), 2)
+total_pedidos = df_categorias['total_pedidos'].sum()
+total_itens   = df_categorias['total_itens'].sum()
+receita_produtos = df_categorias['receita_produtos'].sum()
 
-# Proteção contra divisão por zero caso o usuário filtre uma categoria sem vendas no ano
+# Proteção contra divisão por zero
 if total_pedidos > 0:
-    ticket_medio     = round(receita_total / total_pedidos, 2)
-    preco_medio_item = round(df_categorias['receita_produtos'].sum() / total_itens, 2)
+    ticket_medio = round(receita_total / total_pedidos, 2)
 else:
     ticket_medio = 0
+
+if total_itens > 0:
+    preco_medio_item = round(receita_produtos / total_itens, 2)
+else:
     preco_medio_item = 0
 
 col1.metric("Faturamento Total",        f"R$ {receita_total:,.2f}")
@@ -108,15 +112,18 @@ st.subheader("Top 10 Categorias por Faturamento") #🏆
 
 df_cat = (df_categorias.groupby('product_category_name')
                        .agg(
-                           receita_total = ('receita_total', 'sum'),
-                           total_pedidos = ('total_pedidos', 'sum'),
-                           total_itens   = ('total_itens',   'sum')
+                           receita_produtos = ('receita_produtos', 'sum'),
+                           receita_total    = ('receita_total', 'sum'),
+                           total_pedidos    = ('total_pedidos', 'sum'),
+                           total_itens      = ('total_itens', 'sum')
                        )
                        .reset_index()
                        .sort_values('receita_total', ascending=False)
                        .head(10))
-df_cat['ticket_medio']     = (df_cat['receita_total'] / df_cat['total_pedidos']).round(2)
-df_cat['preco_medio_item'] = (df_cat['receita_total'] / df_cat['total_itens']).round(2)
+
+df_cat['ticket_medio'] = (df_cat['receita_total'] / df_cat['total_pedidos']).round(2)
+
+df_cat['preco_medio_item'] = (df_cat['receita_produtos'] / df_cat['total_itens']).round(2)
 
 fig_cat = px.bar(
     df_cat,
@@ -176,15 +183,23 @@ st.subheader("Resumo por Categoria")#📋
 
 df_tabela = (df_categorias.groupby('product_category_name')
              .agg(
-                 receita_total = ('receita_total', 'sum'),
-                 total_pedidos = ('total_pedidos', 'sum'),
-                 total_itens   = ('total_itens',   'sum'),
+                 receita_produtos = ('receita_produtos', 'sum'),
+                 receita_total    = ('receita_total', 'sum'),
+                 total_pedidos    = ('total_pedidos', 'sum'),
+                 total_itens      = ('total_itens', 'sum'),
              )
              .reset_index()
              .sort_values('receita_total', ascending=False))
 
-df_tabela['ticket_medio']     = (df_tabela['receita_total'] / df_tabela['total_pedidos']).round(2)
-df_tabela['preco_medio_item'] = (df_tabela['receita_total'] / df_tabela['total_itens']).round(2)
+df_tabela['ticket_medio'] = (df_tabela['receita_total'] / df_tabela['total_pedidos']).round(2)
+
+df_tabela['preco_medio_item'] = (
+    df_tabela['receita_produtos'] / df_tabela['total_itens']
+).round(2)
+
+df_tabela['valor_medio_item_com_frete'] = (
+    df_tabela['receita_total'] / df_tabela['total_itens']
+).round(2)
 
 # ==========================================
 # NOVO: Renomeando as colunas para o usuário
@@ -195,20 +210,38 @@ df_tabela_exibicao = df_tabela.rename(columns={
     'total_pedidos': 'Total de Pedidos',
     'total_itens': 'Total de Itens',
     'ticket_medio': 'Ticket Médio',
-    'preco_medio_item': 'Preço Médio por Item'
+    'preco_medio_item': 'Preço Médio por Item',
+    'valor_medio_item_com_frete': 'Valor Médio por Item com Frete'
 })
 
-# Usamos o df_tabela_exibicao no st.dataframe e atualizamos os nomes no subset
+# Removendo receita_produtos da tabela exibida
+df_tabela_exibicao = df_tabela_exibicao.drop(columns=['receita_produtos'])
+
+# ==========================================
+# FORMATAÇÃO VISUAL DA TABELA
+# ==========================================
 st.dataframe(
     df_tabela_exibicao.style
-    .background_gradient(subset=['Receita Total'], cmap='Blues')
-    .background_gradient(subset=['Total de Pedidos'], cmap='Blues') 
-    .background_gradient(subset=['Ticket Médio'],  cmap='Blues')
+    .background_gradient(
+        subset=['Faturamento'],
+        cmap='Blues'
+    )
+    .background_gradient(
+        subset=['Total de Pedidos'],
+        cmap='Blues'
+    )
+    .background_gradient(
+        subset=['Ticket Médio'],
+        cmap='Blues'
+    )
     .format({
-        'Receita Total':    'R$ {:,.2f}',
-        'Ticket Médio':     'R$ {:,.2f}',
-        'Preço Médio/Item': 'R$ {:,.2f}',
+        'Faturamento': 'R$ {:,.2f}',
+        'Total de Pedidos': '{:,.0f}',
+        'Total de Itens': '{:,.0f}',
+        'Preço Médio por Item': 'R$ {:,.2f}',
+        'Valor Médio por Item com Frete': 'R$ {:,.2f}',
+        'Ticket Médio': 'R$ {:,.2f}'
     }),
     use_container_width=True,
-    height=400
+    height=500
 )
