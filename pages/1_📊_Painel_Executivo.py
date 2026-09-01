@@ -75,21 +75,52 @@ else:
 # ==========================================
 # 3. KPIs (Topo) - Usando o df_kpi!
 # ==========================================
-st.subheader("Indicadores Gerais") #📊 
+st.subheader("Indicadores Gerais")
 col1, col2, col3, col4 = st.columns(4)
 
+# Valores dos KPIs
+receita_total = df_kpi['receita_total'].sum()
+total_pedidos = df_kpi['total_pedidos'].sum()
+
 # Tratamento de erro caso o filtro retorne vazio
-if df_kpi['total_pedidos'].sum() > 0:
-    ticket_medio = df_kpi['receita_total'].sum() / df_kpi['total_pedidos'].sum()
-    prazo_medio  = df_kpi['soma_dias_total'].sum() / df_kpi['total_pedidos_entregues'].sum()
+if total_pedidos > 0:
+    ticket_medio = receita_total / total_pedidos
+    prazo_medio = (
+        df_kpi['soma_dias_total'].sum()
+        / df_kpi['total_pedidos_entregues'].sum()
+    )
 else:
     ticket_medio = 0
     prazo_medio = 0
 
-col1.metric("Faturamento Total",      f"R$ {df_kpi['receita_total'].sum():,.2f}")
-col2.metric("Total de Pedidos",       f"{df_kpi['total_pedidos'].sum():,}")
-col3.metric("Ticket Médio",           f"R$ {ticket_medio:,.2f}")
-col4.metric("Prazo Médio de Entrega", f"{prazo_medio:,.1f} dias")
+
+# ==========================================
+# FORMATAÇÃO DOS CARDS
+# ==========================================
+def formatar_moeda_card(valor):
+    if valor >= 1_000_000:
+        return f"R$ {valor / 1_000_000:.2f} mi"
+    elif valor >= 1_000:
+        return f"R$ {valor / 1_000:.1f} mil"
+    else:
+        return f"R$ {valor:,.2f}"
+    
+def formatar_contagem(valor):
+    return f"{valor:,.0f}".replace(",", ".")
+
+
+# ==========================================
+# EXIBIÇÃO DOS KPIs
+# ==========================================
+col1.metric("Faturamento Total", formatar_moeda_card(receita_total))
+
+col2.metric( "Total de Pedidos", formatar_contagem(total_pedidos))
+
+col3.metric("Ticket Médio",formatar_moeda_card(ticket_medio))
+
+col4.metric("Prazo Médio de Entrega", f"{prazo_medio:.1f} dias")
+
+
 
 st.markdown("<br>", unsafe_allow_html=True) # Espaçamento extra
 
@@ -326,28 +357,50 @@ df_mom_tabela = (df_mom[
 # 10. EXIBIÇÃO DA TABELA
 # ==========================================
 
+# Identificação do contexto da análise
 if estado_selecionado_mapa:
-    st.caption( f"📍 Análise MoM do estado **{estado_selecionado_mapa}**" )
+    st.caption(
+        f"📍 Análise MoM do estado **{estado_selecionado_mapa}**"
+    )
 else:
     st.caption("🌎 Análise MoM do Brasil")
 
 
+# ==========================================
+# PADRONIZAÇÃO DO FORMATO BRASILEIRO
+# ==========================================
+
+df_exibir = df_mom_tabela.copy()
+
+df_exibir['Receita'] = df_exibir['Receita'].apply(
+    lambda x: (
+        f"R$ {x:,.2f}"
+        .replace(",", "X")
+        .replace(".", ",")
+        .replace("X", ".")
+    )
+)
+
+df_exibir['Receita Mês Anterior'] = df_exibir['Receita Mês Anterior'].apply(
+    lambda x: (
+        f"R$ {x:,.2f}"
+        .replace(",", "X")
+        .replace(".", ",")
+        .replace("X", ".")
+    )
+)
+
+df_exibir['MoM (%)'] = df_exibir['MoM (%)'].apply(
+    lambda x: f"{x:.2f}%".replace(".", ",")
+)
+
+
+# ==========================================
+# EXIBIÇÃO
+# ==========================================
+
 st.dataframe(
-    df_mom_tabela,
+    df_exibir,
     use_container_width=True,
-    hide_index=True,
-    column_config={
-        'Mês': st.column_config.TextColumn('Mês'),
-        'Receita': st.column_config.NumberColumn(
-            'Receita',
-            format='R$ %.2f'),
-
-        'Receita Mês Anterior': st.column_config.NumberColumn(
-            'Receita Mês Anterior',
-            format='R$ %.2f'),
-
-        'MoM (%)': st.column_config.NumberColumn(
-            'MoM (%)',
-            format='%.2f%%')
-    }
+    hide_index=True
 )

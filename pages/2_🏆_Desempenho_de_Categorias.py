@@ -76,7 +76,6 @@ st.markdown("---")
 df_categorias['product_category_name'] = df_categorias['product_category_name'].str.replace('_', ' ').str.title()
 
 st.subheader("Indicadores de Categorias")
-
 # ==========================================
 # 1. KPIs (Topo)
 # ==========================================
@@ -84,7 +83,7 @@ col1, col2, col3, col4 = st.columns(4)
 
 receita_total = round(df_categorias['receita_total'].sum(), 2)
 total_pedidos = df_categorias['total_pedidos'].sum()
-total_itens   = df_categorias['total_itens'].sum()
+total_itens = df_categorias['total_itens'].sum()
 receita_produtos = df_categorias['receita_produtos'].sum()
 
 # Proteção contra divisão por zero
@@ -98,13 +97,31 @@ if total_itens > 0:
 else:
     preco_medio_item = 0
 
-col1.metric("Faturamento Total",        f"R$ {receita_total:,.2f}")
-col2.metric("Ticket Médio por Pedido",         f"R$ {ticket_medio:,.2f}")
-col3.metric("Itens Vendidos",       f"{total_itens:,}")
-col4.metric("Preço Médio por Item", f"R$ {preco_medio_item:,.2f}")
 
-st.markdown("<br>", unsafe_allow_html=True) # Espaçamento extra
+# ==========================================
+# FORMATAÇÃO DOS CARDS
+# ==========================================
+def formatar_moeda_card(valor):
+    if valor >= 1_000_000:
+        return f"R$ {valor / 1_000_000:.2f} mi"
+    elif valor >= 1_000:
+        return f"R$ {valor / 1_000:.1f} mil"
+    else:
+        return f"R$ {valor:,.2f}"
 
+def formatar_contagem(valor):
+    return f"{valor:,.0f}".replace(",", ".")
+
+# ==========================================
+# EXIBIÇÃO DOS KPIs
+# ==========================================
+col1.metric("Faturamento Total", formatar_moeda_card(receita_total))
+
+col2.metric("Ticket Médio por Pedido",formatar_moeda_card(ticket_medio))
+
+col3.metric("Itens Vendidos", formatar_contagem(total_itens))
+
+col4.metric("Preço Médio por Item",formatar_moeda_card(preco_medio_item))
 # ==========================================
 # 2. GRÁFICO DE BARRAS COM RÓTULOS
 # ==========================================
@@ -178,32 +195,39 @@ st.markdown("---")
 # ==========================================
 # 4. TABELA DE DADOS
 # ==========================================
-# Tabela com mapa de calor
-st.subheader("Resumo por Categoria")#📋 
+st.subheader("Resumo por Categoria")
+st.caption("Comparativo de faturamento, pedidos, itens e valores médios por categoria.")
 
-df_tabela = (df_categorias.groupby('product_category_name')
-             .agg(
-                 receita_produtos = ('receita_produtos', 'sum'),
-                 receita_total    = ('receita_total', 'sum'),
-                 total_pedidos    = ('total_pedidos', 'sum'),
-                 total_itens      = ('total_itens', 'sum'),
-             )
-             .reset_index()
-             .sort_values('receita_total', ascending=False))
+df_tabela = (
+    df_categorias
+    .groupby('product_category_name')
+    .agg(
+        receita_produtos=('receita_produtos', 'sum'),
+        receita_total=('receita_total', 'sum'),
+        total_pedidos=('total_pedidos', 'sum'),
+        total_itens=('total_itens', 'sum')
+    )
+    .reset_index()
+    .sort_values('receita_total', ascending=False)
+)
 
-df_tabela['ticket_medio'] = (df_tabela['receita_total'] / df_tabela['total_pedidos']).round(2)
+# Indicadores derivados
+df_tabela['ticket_medio'] = (
+    df_tabela['receita_total'] /
+    df_tabela['total_pedidos']
+).round(2)
 
 df_tabela['preco_medio_item'] = (
-    df_tabela['receita_produtos'] / df_tabela['total_itens']
+    df_tabela['receita_produtos'] /
+    df_tabela['total_itens']
 ).round(2)
 
 df_tabela['valor_medio_item_com_frete'] = (
-    df_tabela['receita_total'] / df_tabela['total_itens']
+    df_tabela['receita_total'] /
+    df_tabela['total_itens']
 ).round(2)
 
-# ==========================================
-# NOVO: Renomeando as colunas para o usuário
-# ==========================================
+# Renomeando colunas
 df_tabela_exibicao = df_tabela.rename(columns={
     'product_category_name': 'Categoria',
     'receita_total': 'Faturamento',
@@ -214,34 +238,54 @@ df_tabela_exibicao = df_tabela.rename(columns={
     'valor_medio_item_com_frete': 'Valor Médio por Item com Frete'
 })
 
-# Removendo receita_produtos da tabela exibida
-df_tabela_exibicao = df_tabela_exibicao.drop(columns=['receita_produtos'])
+# Remove coluna auxiliar
+df_tabela_exibicao = df_tabela_exibicao.drop(
+    columns=['receita_produtos']
+)
+
+# Tratamento dos nomes
+df_tabela_exibicao['Categoria'] = (
+    df_tabela_exibicao['Categoria']
+    .str.replace('_', ' ', regex=False)
+    .str.title()
+)
 
 # ==========================================
-# FORMATAÇÃO VISUAL DA TABELA
+# FORMATAÇÃO VISUAL
 # ==========================================
-st.dataframe(
+
+df_tabela_estilo = (
     df_tabela_exibicao.style
+
+    # Heatmap apenas nos indicadores de volume
     .background_gradient(
         subset=['Faturamento'],
         cmap='Blues'
     )
+
     .background_gradient(
         subset=['Total de Pedidos'],
         cmap='Blues'
     )
+
     .background_gradient(
-        subset=['Ticket Médio'],
+        subset=['Total de Itens'],
         cmap='Blues'
     )
+
     .format({
         'Faturamento': 'R$ {:,.2f}',
         'Total de Pedidos': '{:,.0f}',
         'Total de Itens': '{:,.0f}',
+        'Ticket Médio': 'R$ {:,.2f}',
         'Preço Médio por Item': 'R$ {:,.2f}',
-        'Valor Médio por Item com Frete': 'R$ {:,.2f}',
-        'Ticket Médio': 'R$ {:,.2f}'
-    }),
+        'Valor Médio por Item com Frete': 'R$ {:,.2f}'
+    })
+)
+
+st.dataframe(
+    df_tabela_estilo,
     use_container_width=True,
-    height=500
+    height=550,
+    hide_index=True
 )

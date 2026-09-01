@@ -77,7 +77,7 @@ st.markdown("<br>", unsafe_allow_html=True)
 # ==========================================
 # 2. GRÁFICO AGRUPADO (Estados) COM RÓTULOS
 # ==========================================
-st.subheader("🗺️ Top 10 Entregas e Clientes por Estado")
+st.subheader("🗺️ Top 10 Estados por Clientes e Pedidos Entregues")
 
 # Agrupa total de clientes
 df_estado_clientes = df_view.groupby('customer_state')['total_clientes'].sum().reset_index()
@@ -165,8 +165,8 @@ st.markdown("---")
 # ==========================================
 # 5. TABELA FINAL (Pedidos por Status)
 # ==========================================
-st.subheader("Pedidos por Status")
-st.caption("Detalhamento dos pedidos não entregues.")
+st.subheader("Clientes por Status dos Pedidos")
+st.caption("Distribuição dos clientes entre os status de pedidos não entregues.")
 
 # Filtra tudo que não é 'Entregue' e agrupa pelo status já traduzido
 df_status_tab = (df_view[df_view['status_pt'] != 'Entregue']
