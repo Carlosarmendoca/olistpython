@@ -1,14 +1,16 @@
 import pandas as pd
 import plotly.express as px
 import streamlit as st
-import sys
-sys.path.append('.')
 
+# O import do sys foi removido para manter o código limpo. 
+# (Se der erro de módulo não encontrado ao rodar, basta voltar com o import sys e sys.path.append('.'))
 from views.vw_top_categorias import get_top_categorias
 
 st.set_page_config(page_title="Desempenho das Categorias", layout="wide")
 
-# Carregando os dados
+# ==========================================
+# CARREGAMENTO DE DADOS
+# ==========================================
 @st.cache_data
 def carregar_dados():
     pedidos  = pd.read_csv("dados/pedidos_limpo.csv", parse_dates=[
@@ -18,29 +20,25 @@ def carregar_dados():
     ])
     itens    = pd.read_csv("dados/itens_limpo.csv", parse_dates=['shipping_limit_date'])
     produtos = pd.read_csv("dados/produtos_limpo.csv")
-    
-    # NOVO: Carregando a tabela de clientes!
     clientes = pd.read_csv("dados/clientes_limpo.csv") 
     
     return pedidos, itens, produtos, clientes
 
-# NOVO: Recebendo a variável clientes aqui no desempacotamento
 pedidos, itens, produtos, clientes = carregar_dados()
 
-# Chamando a view (agora a variável 'clientes' existe e tem os dados!)
 df_categorias = get_top_categorias(pedidos, itens, produtos, clientes)
 
 
-# Título
-st.title("📊 Desempenho de Categorias") #📊 
+# ==========================================
+# CABEÇALHO
+# ==========================================
+st.title("📊 Desempenho de Categorias")
 st.caption("Análise de receita, volume de vendas e ticket médio por categoria.")
 
-#st.markdown("---")
 
 # ==========================================
-# 🔍 FILTROS GLOBAIS - CATEGORIAS
+# 1. FILTROS GLOBAIS
 # ==========================================
-# Pegando as opções únicas direto das tabelas base
 anos_disponiveis    = sorted(pedidos['order_purchase_timestamp'].dt.year.dropna().unique())
 estados_disponiveis = sorted(clientes['customer_state'].dropna().unique())
 
@@ -53,38 +51,33 @@ with st.expander("⚙️ Abrir Filtros da Página", expanded=False):
     with col_f2:
         estado_selecionado = st.multiselect("📍 Selecione o Estado", options=estados_disponiveis, default=estados_disponiveis)
 
-# ==========================================
-# 🚀 APLICAÇÃO DOS FILTROS
-# ==========================================
-# Se a lista de anos selecionados não estiver vazia, aplica o filtro
+# APLICAÇÃO DOS FILTROS
 if ano_selecionado:
     df_categorias = df_categorias[df_categorias['ano'].isin(ano_selecionado)]
 
-# Se a lista de estados selecionados não estiver vazia, aplica o filtro
 if estado_selecionado:
     df_categorias = df_categorias[df_categorias['customer_state'].isin(estado_selecionado)]
 
-st.markdown("---")
-# A partir daqui, seguem os seus gráficos e KPIs de Categorias...
-
+st.divider()
 
 
 # ==========================================
-# TRATAMENTO DE TEXTO (Title Case)
+# TRATAMENTO DE TEXTO GERAL
 # ==========================================
-# Troca '_' por espaço e coloca a primeira letra em maiúscula (ex: cama_mesa_banho -> Cama Mesa Banho)
 df_categorias['product_category_name'] = df_categorias['product_category_name'].str.replace('_', ' ').str.title()
 
 st.subheader("Indicadores de Categorias")
+
+
 # ==========================================
-# 1. KPIs (Topo)
+# 2. KPIs (Topo)
 # ==========================================
+
 col1, col2, col3, col4 = st.columns(4)
 
 receita_total = round(df_categorias['receita_total'].sum(), 2)
 total_pedidos = df_categorias['total_pedidos'].sum()
 total_itens = df_categorias['total_itens'].sum()
-receita_produtos = df_categorias['receita_produtos'].sum()
 
 # Proteção contra divisão por zero
 if total_pedidos > 0:
@@ -93,39 +86,43 @@ else:
     ticket_medio = 0
 
 if total_itens > 0:
-    preco_medio_item = round(receita_produtos / total_itens, 2)
+    # CORREÇÃO: Usando a receita_total (com frete) em vez de apenas produtos
+    preco_medio_item = round(receita_total / total_itens, 2)
 else:
     preco_medio_item = 0
 
-
-# ==========================================
-# FORMATAÇÃO DOS CARDS
-# ==========================================
+# ------------------------------------------
+# Formatação dos Cards
+# ------------------------------------------
 def formatar_moeda_card(valor):
     if valor >= 1_000_000:
+        # Usa o PONTO (ex: 15.42 milhões) 
         return f"R$ {valor / 1_000_000:.2f} mi"
+        
     elif valor >= 1_000:
+        # Usa o PONTO (ex: 15.4 mil)
         return f"R$ {valor / 1_000:.1f} mil"
+        
     else:
-        return f"R$ {valor:,.2f}"
+        # Usa a VÍRGULA e padrão BR para valores inteiros (ex: R$ 158,52)
+        texto = f"R$ {valor:,.2f}"
+        return texto.replace(",", "X").replace(".", ",").replace("X", ".")
 
 def formatar_contagem(valor):
-    return f"{valor:,.0f}".replace(",", ".")
+    return f"{valor:,.0f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
-# ==========================================
-# EXIBIÇÃO DOS KPIs
-# ==========================================
+# Exibição
 col1.metric("Faturamento Total", formatar_moeda_card(receita_total))
-
-col2.metric("Ticket Médio por Pedido",formatar_moeda_card(ticket_medio))
-
+col2.metric("Ticket Médio por Pedido", formatar_moeda_card(ticket_medio))
 col3.metric("Itens Vendidos", formatar_contagem(total_itens))
+col4.metric("Preço Médio por Item", formatar_moeda_card(preco_medio_item))
 
-col4.metric("Preço Médio por Item",formatar_moeda_card(preco_medio_item))
+st.divider()
+
 # ==========================================
-# 2. GRÁFICO DE BARRAS COM RÓTULOS
+# 3. GRÁFICO DE BARRAS (Top Categorias)
 # ==========================================
-st.subheader("Top 10 Categorias por Faturamento") #🏆
+st.subheader("Top 10 Categorias por Faturamento")
 
 df_cat = (df_categorias.groupby('product_category_name')
                        .agg(
@@ -139,7 +136,6 @@ df_cat = (df_categorias.groupby('product_category_name')
                        .head(10))
 
 df_cat['ticket_medio'] = (df_cat['receita_total'] / df_cat['total_pedidos']).round(2)
-
 df_cat['preco_medio_item'] = (df_cat['receita_produtos'] / df_cat['total_itens']).round(2)
 
 fig_cat = px.bar(
@@ -147,24 +143,31 @@ fig_cat = px.bar(
     x='receita_total',
     y='product_category_name',
     orientation='h',
-    text_auto='.2s', # Adiciona os rótulos de dados resumidos
-    color_discrete_sequence=['#1F3B73'], # Minimalismo Premium: Cor sólida corporativa
+    text_auto='.2s', 
+    color_discrete_sequence=['#1F3B73'], 
     hover_data=['total_pedidos', 'ticket_medio'],
     labels={'receita_total': 'Receita Total (R$)', 'product_category_name': 'Categoria'}
 )
-fig_cat.update_traces(textposition='outside') # Posiciona o texto logo após a barra
+
+# Limpeza e Ajuste Executivo
+fig_cat.update_traces(
+    textposition='outside',
+    cliponaxis=False
+) 
 fig_cat.update_layout(
-    yaxis={'categoryorder': 'total ascending'},
-    margin={"r":0,"t":0,"l":0,"b":0}
+    xaxis=dict(title=None, showgrid=False, showticklabels=False),
+    yaxis=dict(title=None, categoryorder='total ascending'),
+    margin=dict(r=40, l=10, t=10, b=10)
 )
 st.plotly_chart(fig_cat, use_container_width=True)
 
-st.markdown("---")
+st.divider()
+
 
 # ==========================================
-# 3. GRÁFICO DE LINHAS COM RÓTULOS
+# 4. GRÁFICO DE LINHAS (Evolução Ticket)
 # ==========================================
-st.subheader("Evolução Mensal do Ticket Médio por Pedido") #📈 
+st.subheader("Evolução Mensal do Ticket Médio por Pedido")
 
 df_ticket = (df_categorias.groupby(['data_mes', 'ano'])
                            .agg(
@@ -172,28 +175,49 @@ df_ticket = (df_categorias.groupby(['data_mes', 'ano'])
                                total_pedidos = ('total_pedidos', 'sum')
                            )
                            .reset_index())
+
 df_ticket['ticket_medio'] = (df_ticket['receita_total'] / df_ticket['total_pedidos']).round(2)
 df_ticket = df_ticket.sort_values(['ano', 'data_mes'])
+
+# Criando coluna de texto formatada para o padrão BR no gráfico
+df_ticket['ticket_texto'] = df_ticket['ticket_medio'].apply(
+    lambda x: f"R$ {x:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+)
 
 fig_ticket = px.line(
     df_ticket,
     x='data_mes',
     y='ticket_medio',
     markers=True,
-    text='ticket_medio', # Adiciona os rótulos de dados na linha
+    text='ticket_texto', # Rótulo formatado no padrão Brasil
     labels={'data_mes': 'Mês', 'ticket_medio': 'Ticket Médio (R$)'}
 )
-fig_ticket.update_traces(textposition='top center') # Posiciona o texto acima do marcador
+
+# Limpeza e Ajuste Executivo
+max_y_ticket = df_ticket['ticket_medio'].max()
+
+fig_ticket.update_traces(
+    textposition='top center',
+    cliponaxis=False
+)
 fig_ticket.update_layout(
     xaxis_tickangle=-45,
-    margin={"r":0,"t":10,"l":0,"b":0}
+    xaxis_title=None,
+    yaxis=dict(
+        title=None, 
+        showgrid=False, 
+        showticklabels=False,
+        range=[0, max_y_ticket * 1.15]
+    ),
+    margin=dict(r=20, l=10, t=30, b=10)
 )
 st.plotly_chart(fig_ticket, use_container_width=True)
 
-st.markdown("---")
+st.divider()
+
 
 # ==========================================
-# 4. TABELA DE DADOS
+# 5. TABELA DE DADOS
 # ==========================================
 st.subheader("Resumo por Categoria")
 st.caption("Comparativo de faturamento, pedidos, itens e valores médios por categoria.")
@@ -211,23 +235,10 @@ df_tabela = (
     .sort_values('receita_total', ascending=False)
 )
 
-# Indicadores derivados
-df_tabela['ticket_medio'] = (
-    df_tabela['receita_total'] /
-    df_tabela['total_pedidos']
-).round(2)
+df_tabela['ticket_medio'] = (df_tabela['receita_total'] / df_tabela['total_pedidos']).round(2)
+df_tabela['preco_medio_item'] = (df_tabela['receita_produtos'] / df_tabela['total_itens']).round(2)
+df_tabela['valor_medio_item_com_frete'] = (df_tabela['receita_total'] / df_tabela['total_itens']).round(2)
 
-df_tabela['preco_medio_item'] = (
-    df_tabela['receita_produtos'] /
-    df_tabela['total_itens']
-).round(2)
-
-df_tabela['valor_medio_item_com_frete'] = (
-    df_tabela['receita_total'] /
-    df_tabela['total_itens']
-).round(2)
-
-# Renomeando colunas
 df_tabela_exibicao = df_tabela.rename(columns={
     'product_category_name': 'Categoria',
     'receita_total': 'Faturamento',
@@ -238,48 +249,30 @@ df_tabela_exibicao = df_tabela.rename(columns={
     'valor_medio_item_com_frete': 'Valor Médio por Item com Frete'
 })
 
-# Remove coluna auxiliar
-df_tabela_exibicao = df_tabela_exibicao.drop(
-    columns=['receita_produtos']
-)
+df_tabela_exibicao = df_tabela_exibicao.drop(columns=['receita_produtos'])
 
-# Tratamento dos nomes
-df_tabela_exibicao['Categoria'] = (
-    df_tabela_exibicao['Categoria']
-    .str.replace('_', ' ', regex=False)
-    .str.title()
-)
+# ------------------------------------------
+# Funções de Formatação Padrão Brasil (Tabela)
+# ------------------------------------------
+def formata_br(valor):
+    return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
-# ==========================================
-# FORMATAÇÃO VISUAL
-# ==========================================
+def formata_qtd(valor):
+    return f"{valor:,.0f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
+# ------------------------------------------
+# Estilização
+# ------------------------------------------
 df_tabela_estilo = (
     df_tabela_exibicao.style
-
-    # Heatmap apenas nos indicadores de volume
-    .background_gradient(
-        subset=['Faturamento'],
-        cmap='Blues'
-    )
-
-    .background_gradient(
-        subset=['Total de Pedidos'],
-        cmap='Blues'
-    )
-
-    .background_gradient(
-        subset=['Total de Itens'],
-        cmap='Blues'
-    )
-
+    .background_gradient(subset=['Faturamento', 'Total de Pedidos', 'Total de Itens'], cmap='Blues')
     .format({
-        'Faturamento': 'R$ {:,.2f}',
-        'Total de Pedidos': '{:,.0f}',
-        'Total de Itens': '{:,.0f}',
-        'Ticket Médio': 'R$ {:,.2f}',
-        'Preço Médio por Item': 'R$ {:,.2f}',
-        'Valor Médio por Item com Frete': 'R$ {:,.2f}'
+        'Faturamento': formata_br,
+        'Total de Pedidos': formata_qtd,
+        'Total de Itens': formata_qtd,
+        'Ticket Médio': formata_br,
+        'Preço Médio por Item': formata_br,
+        'Valor Médio por Item com Frete': formata_br
     })
 )
 
@@ -289,3 +282,4 @@ st.dataframe(
     height=550,
     hide_index=True
 )
+st.divider()

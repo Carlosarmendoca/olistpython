@@ -1,9 +1,9 @@
 import pandas as pd
 import plotly.express as px
 import streamlit as st
-import sys
+
 import numpy as np
-sys.path.append('.')
+
 
 from views.vw_receita_mensal     import get_receita_mensal
 from views.vw_top_categorias     import get_top_categorias
@@ -75,6 +75,9 @@ else:
 # ==========================================
 # 3. KPIs (Topo) - Usando o df_kpi!
 # ==========================================
+st.write("") 
+st.write("")
+
 st.subheader("Indicadores Gerais")
 col1, col2, col3, col4 = st.columns(4)
 
@@ -99,32 +102,41 @@ else:
 # ==========================================
 def formatar_moeda_card(valor):
     if valor >= 1_000_000:
+        # Usa o PONTO direto (ex: 15.42 milhões)
         return f"R$ {valor / 1_000_000:.2f} mi"
+        
     elif valor >= 1_000:
+        # Usa o PONTO direto (ex: 15.4 mil)
         return f"R$ {valor / 1_000:.1f} mil"
+        
     else:
-        return f"R$ {valor:,.2f}"
+        # Usa a VÍRGULA apenas para valores inteiros menores (ex: R$ 158,52)
+        texto = f"R$ {valor:,.2f}"
+        return texto.replace(",", "X").replace(".", ",").replace("X", ".")
     
 def formatar_contagem(valor):
-    return f"{valor:,.0f}".replace(",", ".")
+    # Mantém a inversão para garantir que 96.478 fique com ponto no milhar
+    texto = f"{valor:,.0f}"
+    return texto.replace(",", "X").replace(".", ",").replace("X", ".")
 
 
 # ==========================================
 # EXIBIÇÃO DOS KPIs
 # ==========================================
+
 col1.metric("Faturamento Total", formatar_moeda_card(receita_total))
 
-col2.metric( "Total de Pedidos", formatar_contagem(total_pedidos))
+col2.metric("Total de Pedidos", formatar_contagem(total_pedidos))
 
-col3.metric("Ticket Médio",formatar_moeda_card(ticket_medio))
+col3.metric("Ticket Médio", formatar_moeda_card(ticket_medio))
 
-col4.metric("Prazo Médio de Entrega", f"{prazo_medio:.1f} dias")
-
-
-
-st.markdown("<br>", unsafe_allow_html=True) # Espaçamento extra
+# Aqui aplicamos um .replace(".", ",") rápido para o prazo médio ficar 12,5 em vez de 12.5
+texto_prazo = f"{prazo_medio:.1f} dias".replace(".", ",")
+col4.metric("Prazo Médio de Entrega", texto_prazo)
 
 
+st.write("") # Espaçamento extra (substituindo o br do HTML para ficar mais limpo)
+st.divider()
 # ==========================================
 # 4. MAPA DO BRASIL
 # ==========================================
@@ -180,13 +192,15 @@ if estado_selecionado_mapa:
     df_categorias = df_categorias[df_categorias['customer_state'] == estado_selecionado_mapa]
     df_receita    = df_receita[df_receita['customer_state'] == estado_selecionado_mapa]
 
-st.markdown("---")
-
+st.divider()
 # ==========================================
 # 6. GRÁFICO DE BARRAS (Largura Total)
 # ==========================================
 st.subheader("Top 10 Categorias por Pedidos") #🏆 
 
+# ------------------------------------------
+# Tratamento de Dados
+# ------------------------------------------
 df_cat = (df_categorias.groupby('product_category_name')
                        .agg(
                            receita_total = ('receita_total', 'sum'),
@@ -204,6 +218,9 @@ if not df_cat.empty:
 
     df_cat['product_category_name'] = df_cat['product_category_name'].str.replace('_', ' ').str.title()
 
+    # ------------------------------------------
+    # Gráfico
+    # ------------------------------------------
     fig_cat = px.bar(
         df_cat,
         x='total_pedidos',
@@ -214,17 +231,36 @@ if not df_cat.empty:
         hover_data=['total_pedidos', 'ticket_medio'],
         labels={'total_pedidos': 'Total de Pedidos', 'product_category_name': 'Categoria'}
     )
-    fig_cat.update_traces(textposition='outside') 
+    
+    # ------------------------------------------
+    # Rótulos
+    # ------------------------------------------
+    fig_cat.update_traces(
+        textposition='outside',
+        cliponaxis=False # Evita que o número (ex: 9.3k) seja cortado na direita
+    ) 
+    
+    # ------------------------------------------
+    # Layout 
+    # ------------------------------------------
     fig_cat.update_layout(
-        yaxis={'categoryorder': 'total ascending'},
-        margin={"r":0,"t":10,"l":0,"b":0} 
+        xaxis=dict(
+            title=None,              # Remove o título inferior ("Total de Pedidos")
+            showgrid=False,          # Remove as linhas de grade verticais
+            showticklabels=False     # Remove os números do eixo X
+        ),
+        yaxis=dict(
+            title=None,              # Remove a palavra lateral ("Categoria")
+            categoryorder='total ascending' # Garante a maior barra no topo
+        ),
+        margin=dict(r=40, l=10, t=10, b=10) # Margem 'r' (direita) dá espaço para o rótulo da barra maior
     )
+    
     st.plotly_chart(fig_cat, use_container_width=True)
 else:
     st.warning("Não há dados de categorias para o estado selecionado.")
 
-st.markdown("---")
-
+st.divider()
 # ==========================================
 # 7. LINHA DO TEMPO (Largura Total)
 # ==========================================
@@ -232,12 +268,19 @@ st.subheader("📈 Evolução Mensal do Faturamento")
 
 # Prevenção de erro caso o estado clicado não tenha histórico
 if not df_receita.empty:
+    
+    # ------------------------------------------
+    # Tratamento de Dados
+    # ------------------------------------------
     # Agrupamos novamente a receita, pois agora ela tem a granularidade de estado
     df_linha = (df_receita.groupby(['ano', 'mes', 'ano_mes'])
                           .agg(receita_total = ('receita_total', 'sum'))
                           .reset_index()
                           .sort_values(['ano', 'mes']))
 
+    # ------------------------------------------
+    # Gráfico
+    # ------------------------------------------
     fig_receita = px.line(
         df_linha,
         x='ano_mes',
@@ -246,82 +289,66 @@ if not df_receita.empty:
         text='receita_total',
         labels={'ano_mes': 'Mês', 'receita_total': 'Receita Total (R$)'}
     )
-    fig_receita.update_traces(textposition='top center', texttemplate='%{text:.2s}') 
+    
+    # ------------------------------------------
+    # Rótulos
+    # ------------------------------------------
+    fig_receita.update_traces(
+        textposition='top center', 
+        texttemplate='%{text:.2s}',
+        cliponaxis=False # Evita que o número do pico do gráfico seja cortado
+    ) 
+    
+    # ------------------------------------------
+    # Layout (Limpeza Visual Executiva)
+    # ------------------------------------------
+    max_y_linha = df_linha['receita_total'].max()
+    
     fig_receita.update_layout(
         xaxis_tickangle=-45,
-        margin={"r":0,"t":20,"l":0,"b":0} 
+        xaxis_title=None,             # Remove a palavra "Mês"
+        yaxis=dict(
+            title=None,               # Remove a palavra "Receita Total (R$)"
+            showgrid=False,           # Remove linhas horizontais
+            showticklabels=False,     # Remove os números laterais do eixo Y
+            range=[0, max_y_linha * 1.15] # 15% de respiro no topo
+        ),
+        margin=dict(r=20, l=10, t=30, b=10) 
     )
+    
     st.plotly_chart(fig_receita, use_container_width=True)
 else:
     st.warning("Não há dados de receita para o estado selecionado.")
 
-
-## ==========================================
+st.divider()
+# ==========================================
 # 8. ANÁLISE MoM — MONTH OVER MONTH
 # ==========================================
 
-st.markdown("---")
-
 st.subheader("📊 Variação Mensal da Receita (MoM)")
-
 st.caption("Compara a receita de cada mês com o mês calendário imediatamente anterior.")
 
-
-# ==========================================
-# PREPARAÇÃO DA ANÁLISE
-# ==========================================
-
+# ------------------------------------------
+# Preparação da Análise
+# ------------------------------------------
 if estado_selecionado_mapa:
-
-    # ------------------------------------------------------
-    # ESTADO SELECIONADO
-    # ------------------------------------------------------
-    #
-    # O MoM já foi calculado na vw_receita_mensal.
-    # Portanto, apenas utilizamos os valores da view.
-    #
-
     df_mom = (
         df_receita[
             [
-                'ano',
-                'mes',
-                'mes_nome',
-                'ano_mes',
-                'receita_total',
-                'receita_mes_anterior',
-                'variacao_mom_pct'
+                'ano', 'mes', 'mes_nome', 'ano_mes',
+                'receita_total', 'receita_mes_anterior', 'variacao_mom_pct'
             ]
         ]
         .copy()
         .sort_values(['ano', 'mes'])
     )
-
 else:
-
-    # ------------------------------------------------------
-    # BRASIL
-    # ------------------------------------------------------
-    #
-    # A view possui granularidade Estado × Mês.
-    #
-    # Para obter o Brasil, primeiro consolidamos a receita
-    # de todos os estados.
-    #
-    # Depois calculamos o MoM sobre o total Brasil.
-    #
-
     df_mom = (df_receita.groupby(
             ['ano', 'mes', 'mes_nome', 'ano_mes'],
             as_index=False).agg(receita_total=('receita_total', 'sum')
         ).sort_values(['ano', 'mes'])
     )
-
-    # Receita do mês calendário anterior
-    df_mom['receita_mes_anterior'] = (
-        df_mom['receita_total'].shift(1))
-
-    # Calculando MoM Brasil
+    df_mom['receita_mes_anterior'] = (df_mom['receita_total'].shift(1))
     df_mom['variacao_mom_pct'] = np.where(
         df_mom['receita_mes_anterior'] > 0,
         (
@@ -329,11 +356,9 @@ else:
             / df_mom['receita_mes_anterior'] * 100
         ), np.nan).round(2)
 
-
-# ==========================================
-# 9. PREPARAÇÃO DA TABELA
-# ==========================================
-
+# ------------------------------------------
+# Preparação da Tabela
+# ------------------------------------------
 df_mom['Mês'] = (df_mom['mes_nome']+ "/" + df_mom['ano'].astype(str))
 
 df_mom_tabela = (df_mom[
@@ -352,55 +377,39 @@ df_mom_tabela = (df_mom[
     )
 )
 
-
-# ==========================================
-# 10. EXIBIÇÃO DA TABELA
-# ==========================================
-
 # Identificação do contexto da análise
 if estado_selecionado_mapa:
-    st.caption(
-        f"📍 Análise MoM do estado **{estado_selecionado_mapa}**"
-    )
+    st.caption(f"📍 Análise MoM do estado **{estado_selecionado_mapa}**")
 else:
     st.caption("🌎 Análise MoM do Brasil")
 
 
 # ==========================================
-# PADRONIZAÇÃO DO FORMATO BRASILEIRO
+# 9. EXIBIÇÃO E FORMATAÇÃO DA TABELA
 # ==========================================
-
 df_exibir = df_mom_tabela.copy()
 
+# Tratamento de Nulos (Remove os 'nan' antes de formatar como string)
+df_exibir = df_exibir.fillna('-')
+
+# Formatação Moeda
 df_exibir['Receita'] = df_exibir['Receita'].apply(
-    lambda x: (
-        f"R$ {x:,.2f}"
-        .replace(",", "X")
-        .replace(".", ",")
-        .replace("X", ".")
-    )
+    lambda x: f"R$ {x:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") if isinstance(x, (int, float)) else x
 )
 
 df_exibir['Receita Mês Anterior'] = df_exibir['Receita Mês Anterior'].apply(
-    lambda x: (
-        f"R$ {x:,.2f}"
-        .replace(",", "X")
-        .replace(".", ",")
-        .replace("X", ".")
-    )
+    lambda x: f"R$ {x:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") if isinstance(x, (int, float)) else x
 )
 
+# Formatação Percentual (Ignora se for um hífen)
 df_exibir['MoM (%)'] = df_exibir['MoM (%)'].apply(
-    lambda x: f"{x:.2f}%".replace(".", ",")
+    lambda x: f"{x:.2f}%".replace(".", ",") if isinstance(x, (int, float)) else x
 )
 
-
-# ==========================================
-# EXIBIÇÃO
-# ==========================================
-
+# Plotagem
 st.dataframe(
     df_exibir,
     use_container_width=True,
     hide_index=True
 )
+st.divider()
