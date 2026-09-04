@@ -338,21 +338,24 @@ with col_cidade:
     max_y_cidade = df_cidade_top['Total de Clientes'].max()
 
     fig_cidade.update_layout(
-        height=450,              
-        xaxis_tickangle=0,
-        xaxis_title=None,
-        yaxis=dict(
-            title=None,              
-            showgrid=False,          
-            showticklabels=False,    
-            range=[0, max_y_cidade * 1.25] 
-        ),
-        margin=dict(l=10, r=10, t=70, b=90) 
-    )
+    height=450,              
+    xaxis=dict(
+        title=None,
+        tickangle=-45,
+        type='category',
+        tickfont=dict(size=9)  # Reduzindo a fonte aqui
+    ),
+    yaxis=dict(
+        title=None,              
+        showgrid=False,          
+        showticklabels=False,    
+        range=[0, max_y_cidade * 1.25] 
+    ),
+    margin=dict(l=10, r=10, t=70, b=90) 
+)
     
     fig_cidade.update_xaxes(automargin=False)
     fig_cidade.update_yaxes(automargin=False)
-    
     
     st.plotly_chart(fig_cidade, use_container_width=True)
     
@@ -446,8 +449,8 @@ fig_evolucao.update_layout(
     ),
     margin={"r": 20, "t": 30, "l": 10, "b": 10}
 )
+fig_cidade.update_xaxes(tickangle=-45, type='category')
 
-st.plotly_chart(fig_evolucao, use_container_width=True)
 
 st.divider()
 
