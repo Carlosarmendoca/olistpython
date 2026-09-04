@@ -329,6 +329,9 @@ with col_cidade:
         cliponaxis=False
     )
 
+    # Rotacionar rotulos 
+    
+
     # ------------------------------------------
     # Layout - Gráfico Cidade
     # ------------------------------------------
@@ -349,8 +352,10 @@ with col_cidade:
     
     fig_cidade.update_xaxes(automargin=False)
     fig_cidade.update_yaxes(automargin=False)
-
+    
+    
     st.plotly_chart(fig_cidade, use_container_width=True)
+    
 
     st.divider()
 # ==========================================
