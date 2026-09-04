@@ -17,7 +17,7 @@ def get_receita_por_estado(pedidos, clientes, pagamentos):
     # ==========================================
     df = (pedidos.merge(
             clientes[
-                ['customer_id', 'customer_state', 'customer_city']
+                ['customer_id','customer_unique_id', 'customer_state', 'customer_city']
             ],
             on='customer_id',
             how='left').merge(pagamentos_consolidados,on='order_id',how='left'))
@@ -69,12 +69,12 @@ def get_receita_por_estado(pedidos, clientes, pagamentos):
     )
     .agg(
         total_pedidos=('order_id', 'nunique'),
-        total_clientes=('customer_id', 'nunique'),
+        total_clientes=('customer_unique_id', 'nunique'),
         receita_total=('total_pago_pedido', 'sum'),
         soma_dias_separacao=('dias_separacao', 'sum'),
         soma_dias_transporte=('dias_transporte', 'sum'),
         soma_dias_total=('dias_total', 'sum'),
-        total_pedidos_entregues=('order_id', 'nunique')
+        
     )
     .reset_index()
 )
@@ -90,12 +90,12 @@ def get_receita_por_estado(pedidos, clientes, pagamentos):
     resultado['ticket_medio'] = (resultado['receita_total'] / resultado['total_pedidos']).round(2)
 
     # Prazo médio de separação
-    resultado['prazo_separacao_dias'] = (resultado['soma_dias_separacao'] / resultado['total_pedidos_entregues']).round(1)
+    resultado['prazo_separacao_dias'] = (resultado['soma_dias_separacao'] / resultado['total_pedidos']).round(1)
 
     # Prazo médio de transporte
-    resultado['prazo_transporte_dias'] = (resultado['soma_dias_transporte'] / resultado['total_pedidos_entregues']).round(1)
+    resultado['prazo_transporte_dias'] = (resultado['soma_dias_transporte'] / resultado['total_pedidos']).round(1)
 
     # Prazo médio total de entrega
-    resultado['prazo_total_dias'] = (resultado['soma_dias_total'] / resultado['total_pedidos_entregues']).round(1)
+    resultado['prazo_total_dias'] = (resultado['soma_dias_total'] / resultado['total_pedidos']).round(1)
 
     return resultado

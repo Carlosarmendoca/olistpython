@@ -15,7 +15,7 @@ O projeto foi desenvolvido como parte do meu portfólio na área de **Data Analy
 
 ## 🎯 Objetivo
 
-Transformar dados brutos de pedidos, clientes, produtos, itens e pagamentos em informações de alto nível que permitam analisar:
+Transformar dados brutos de pedidos, clientes, produtos, itens e pagamentos em informações que permitam analisar:
 
 * 📈 Evolução do faturamento e volume de pedidos;
 * 💰 Ticket médio e prazo médio de entrega;
@@ -42,15 +42,15 @@ Transformar dados brutos de pedidos, clientes, produtos, itens e pagamentos em i
 
 ## 🛠️ Tecnologias Utilizadas
 
-| Tecnologia     | Utilização                                                               |
-| :------------- | :----------------------------------------------------------------------- |
-| **Python**     | Desenvolvimento da aplicação e tratamento dos dados                      |
-| **Pandas**     | Manipulação, transformação, agrupamento e análise dos dados              |
-| **Plotly**     | Criação de gráficos interativos com foco em visualização limpa           |
-| **Streamlit**  | Construção da interface do dashboard e filtros interativos               |
-| **SQL**        | Consultas, agregações e lógica de criação de métricas                    |
-| **Git/GitHub** | Versionamento e documentação do projeto                                  |
-| **Gemini**     | Ferramenta de IA auxiliar utilizada para revisão e refatoração de código |
+| Tecnologia     | Utilização                                                                         |
+| :------------- | :----------------------------------------------------------------------------------|
+| **Python**     | Desenvolvimento da aplicação e tratamento dos dados                                |
+| **Pandas**     | Manipulação, transformação, agrupamento e análise dos dados                        |
+| **Plotly**     | Criação de gráficos interativos com foco em visualização limpa                     |
+| **Streamlit**  | Construção da interface do dashboard e filtros interativos                         |
+| **SQL**        | Consultas, agregações e lógica de criação de métricas                              |
+| **Git/GitHub** | Versionamento e documentação do projeto                                            |
+| **Gemini**     | Ferramenta de IA auxiliar utilizada para revisão, correção e construção de código  |
 
 ---
 

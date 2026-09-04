@@ -90,7 +90,7 @@ if total_pedidos > 0:
     ticket_medio = receita_total / total_pedidos
     prazo_medio = (
         df_kpi['soma_dias_total'].sum()
-        / df_kpi['total_pedidos_entregues'].sum()
+        / df_kpi['total_pedidos'].sum()
     )
 else:
     ticket_medio = 0

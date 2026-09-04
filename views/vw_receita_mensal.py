@@ -241,7 +241,7 @@ def get_receita_mensal(pedidos, pagamentos, clientes):
     # 13. IDENTIFICAR A LINHA ANTERIOR
     # =========================================================
     #
-    # Como agora temos TODOS os meses no calendário,
+    # Como agora tem TODOS os meses no calendário,
     # o shift representa o mês calendário anterior.
     # =========================================================
 
