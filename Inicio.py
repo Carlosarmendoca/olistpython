@@ -1,5 +1,3 @@
-
-
 import streamlit as st
 
 st.set_page_config(
@@ -8,49 +6,93 @@ st.set_page_config(
     layout="wide"
 )
 
-# Título
-st.title("🛒 Olist Analytics")
-
+# --- INJEÇÃO DE CSS PARA O INÍCIO / LANDING PAGE ---
 st.markdown(
-    "Análise de vendas, categorias, clientes e logística "
-    "do e-commerce brasileiro através de dados públicos da Olist."
+    """
+    <style>
+    [data-testid="stMarkdownContainer"] h1 {
+        font-size: 32px !important;
+        font-weight: 700 !important;
+        color: #1F2937 !important;
+        padding-bottom: 0px !important;
+        margin-bottom: -10px !important;
+    }
+    [data-testid="stMarkdownContainer"] h3 {
+        font-size: 18px !important;
+        font-weight: 600 !important;
+        color: #374151 !important;
+        padding-bottom: 5px !important;
+    }
+    /* Estilização suave para os cards de navegação */
+    div[data-testid="stAlert"] {
+        background-color: #F8FAFC !important;
+        border: 1px solid #E2E8F0 !important;
+        color: #1E293B !important;
+        border-radius: 8px !important;
+        padding: 16px !important;
+    }
+    div[data-testid="stAlert"] p {
+        font-size: 13px !important;
+        line-height: 1.5 !important;
+    }
+    [data-testid="stSidebar"] {
+        min-width: 220px !important;
+        max-width: 220px !important;
+        width: 220px !important;
+    }
+
+    [data-testid="stSidebarNavLink"] span {
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    }
+    </style>
+
+    """,
+    unsafe_allow_html=True,
 )
 
-st.divider()
+# Header
+st.title("🛒 Olist Analytics")
+st.caption("Análise executiva de vendas, categorias, clientes e logística do e-commerce brasileiro.")
 
-st.subheader("Explore o dashboard")
+st.write("")
+st.write("")
+
+st.subheader("📌 Explore as Visões do Dashboard")
 
 col1, col2, col3 = st.columns(3)
 
 with col1:
     st.info(
         "**📊 Painel Executivo**\n\n"
-        "Visão geral de receita, pedidos, ticket médio, "
-        "distribuição geográfica e logística."
+        "Acompanhe os principais indicadores (KPIs) de faturamento, volume de pedidos, "
+        "ticket médio e a saúde das operações em alto nível."
     )
 
 with col2:
     st.info(
-        "**🏆 Desempenho das Categorias**\n\n"
-        "Analise receita, volume de vendas, ticket médio "
-        "e desempenho das principais categorias."
+        "**🏆 Desempenho de Categorias**\n\n"
+        "Explore a receita gerada por segmento, os produtos líderes de vendas, "
+        "o ticket médio das categorias e a concentração de mercado."
     )
 
 with col3:
     st.info(
         "**👥 Clientes e Pedidos**\n\n"
-        "Explore a distribuição dos clientes, "
-        "evolução da base e status dos pedidos."
+        "Entenda a distribuição geográfica da sua base, a expansão acumulada ao "
+        "longo do tempo e o funil de status de entregas dos pedidos."
     )
 
 st.divider()
 
-st.subheader("Sobre os dados")
+st.subheader("ℹ️ Sobre a Base de Dados")
 
 st.write(
-    "Conjunto de dados público da Olist, contendo informações "
-    "sobre pedidos, clientes, produtos, pagamentos e logística "
-    "do e-commerce brasileiro no período de 2016 a 2018."
+    "Este dashboard analisa o conjunto de dados público da **Olist**, "
+    "uma empresa brasileira de tecnologia voltada ao ecossistema de e-commerce. "
+    "A base reúne dados de pedidos realizados entre **2016 e 2018**, "
+    "permitindo analisar diferentes etapas da jornada de compra, desde o pedido "
+    "até a entrega logística ao cliente."
 )
 
-st.caption("Olist Analytics • Dashboard de Data Analytics")
+st.caption("Olist Analytics • Visual Identity & Data Standard v2.0")

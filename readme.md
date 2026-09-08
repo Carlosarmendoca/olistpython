@@ -1,160 +1,170 @@
 # 📊 Olist Analytics — Python & Streamlit
 
-[![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge\&logo=python\&logoColor=white)]()
-[![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge\&logo=streamlit\&logoColor=white)]()
-[![Pandas](https://img.shields.io/badge/Pandas-150458?style=for-the-badge\&logo=pandas\&logoColor=white)]()
-[![Plotly](https://img.shields.io/badge/Plotly-239120?style=for-the-badge\&logo=plotly\&logoColor=white)]()
+[![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge\&logo=python\&logoColor=white)](https://www.python.org/)
+[![Pandas](https://img.shields.io/badge/Pandas-150458?style=for-the-badge\&logo=pandas\&logoColor=white)](https://pandas.pydata.org/)
+[![Plotly](https://img.shields.io/badge/Plotly-239120?style=for-the-badge\&logo=plotly\&logoColor=white)](https://plotly.com/)
+[![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge\&logo=streamlit\&logoColor=white)](https://streamlit.io/)
 
-> **🔗 Acesse o Dashboard Online:** [Insira o link do Streamlit Cloud aqui após o deploy]
+> **🔗 Dashboard Online:** [Acesse o dashboard após o deploy](COLE_AQUI_O_LINK_DO_STREAMLIT)
 
-Projeto de análise de dados desenvolvido a partir do dataset público da **Olist**, empresa brasileira de marketplace, com foco em análise de vendas, clientes, categorias e desempenho geográfico.
+Projeto de **Data Analytics** desenvolvido em Python e Streamlit a partir do conjunto de dados público da **Olist**, uma empresa brasileira de tecnologia voltada ao ecossistema de e-commerce.
 
-O projeto foi desenvolvido como parte do meu portfólio na área de **Data Analytics**, utilizando Python, Pandas, SQL e visualização de dados para transformar dados brutos em informações úteis para tomada de decisão.
+O projeto transforma dados de pedidos, clientes, produtos, itens e pagamentos em indicadores e análises para apoiar a compreensão do desempenho comercial, da distribuição geográfica e da evolução da base de clientes.
+
+A base reúne pedidos realizados entre **2016 e 2018**, permitindo analisar diferentes etapas da jornada de compra, desde o pedido até a entrega logística ao cliente.
 
 ---
 
 ## 🎯 Objetivo
 
-Transformar dados brutos de pedidos, clientes, produtos, itens e pagamentos em informações que permitam analisar:
+Transformar dados brutos em informações que permitam analisar:
 
 * 📈 Evolução do faturamento e volume de pedidos;
 * 💰 Ticket médio e prazo médio de entrega;
-* 📦 Desempenho e ranking das categorias;
-* 📍 Distribuição geográfica e receita por estado;
-* 👥 Evolução e distribuição da base de clientes;
-* 🔎 Comportamento dos pedidos por status.
+* 📦 Desempenho das categorias de produtos;
+* 📍 Distribuição geográfica de vendas e clientes;
+* 👥 Evolução da base de clientes;
+* 🔎 Distribuição dos pedidos por status.
 
 ---
 
-## 🚀 Destaques Técnicos do Dashboard
+## 📊 Dashboard
 
-* **Design Executivo:** Interface desenvolvida com redução de ruídos visuais, foco em Data Storytelling e utilização de uma identidade visual consistente.
+O projeto está dividido em três visões principais.
 
-* **Cross-Filtering Geográfico:** Interatividade utilizando `st.session_state`. A seleção de um estado no mapa do Brasil atualiza dinamicamente os indicadores e análises da página.
-
-* **Localização PT-BR Customizada:** Formatação de valores monetários e quantitativos seguindo o padrão brasileiro, incluindo valores como `R$ 15,42 milhões` e `110.197`.
-
-* **Alta Performance:** Utilização de `@st.cache_data` e organização das transformações em funções reutilizáveis para evitar operações desnecessárias.
-
-* **Identificação de Clientes Únicos:** Utilização de `customer_unique_id` para evitar a contagem duplicada de clientes que realizaram múltiplos pedidos.
-
----
-
-## 🛠️ Tecnologias Utilizadas
-
-| Tecnologia     | Utilização                                                                         |
-| :------------- | :----------------------------------------------------------------------------------|
-| **Python**     | Desenvolvimento da aplicação e tratamento dos dados                                |
-| **Pandas**     | Manipulação, transformação, agrupamento e análise dos dados                        |
-| **Plotly**     | Criação de gráficos interativos com foco em visualização limpa                     |
-| **Streamlit**  | Construção da interface do dashboard e filtros interativos                         |
-| **SQL**        | Consultas, agregações e lógica de criação de métricas                              |
-| **Git/GitHub** | Versionamento e documentação do projeto                                            |
-| **Gemini**     | Ferramenta de IA auxiliar utilizada para revisão, correção e construção de código  |
-
----
-
-# 📈 Dashboards
-
-O projeto está dividido em três páginas principais.
-
-## 1. Painel Executivo
+### 1. 📊 Painel Executivo
 
 Visão geral dos principais indicadores de desempenho do negócio.
 
-### Métricas
+**Principais métricas:**
 
 * Faturamento total;
 * Total de pedidos;
 * Ticket médio;
 * Prazo médio de entrega.
 
-### Análises
+**Análises:**
 
 * Mapa interativo de receita por estado;
 * Evolução mensal do faturamento;
 * Análise Month-over-Month (MoM);
-* Principais categorias.
+* Ranking das principais categorias.
 
 ---
 
-## 2. Desempenho das Categorias
+### 2. 🏆 Desempenho das Categorias
 
-Análise do desempenho comercial das categorias de produtos, permitindo identificar quais categorias apresentam maior participação e volume.
+Análise do desempenho comercial das categorias de produtos.
 
-### Métricas
+**Principais métricas:**
 
-* Receita;
-* Quantidade de pedidos;
-* Quantidade de itens;
-* Preço médio dos produtos;
-* Valor médio por item com frete.
+* Faturamento;
+* Ticket médio por pedido;
+* Quantidade de itens vendidos;
+* Preço médio por item;
 
-### Análises
+**Análises:**
 
-* Ranking das Top 10 categorias por receita;
-* Comparação de desempenho entre categorias;
-* Evolução temporal das principais métricas.
+* Top 10 categorias por faturamento;
+* Comparação de volume e receita entre categorias;
+* Evolução mensal do ticket médio;
+* Resumo consolidado por categoria.
 
 ---
 
-## 3. Análise de Clientes
+### 3. 👥 Clientes e Pedidos
 
 Análise da distribuição geográfica e evolução da base de clientes.
 
-A identificação dos clientes utiliza `customer_unique_id`, permitindo considerar corretamente clientes que realizaram múltiplos pedidos.
+A identificação dos clientes utiliza `customer_unique_id`, permitindo contabilizar corretamente clientes únicos mesmo quando um mesmo cliente realizou múltiplos pedidos.
 
-### Métricas
+**Principais métricas:**
 
 * Total de clientes únicos;
 * Clientes com pedidos entregues;
 * Clientes com pedidos cancelados;
 * Clientes com pedidos faturados.
 
-### Análises
+**Análises:**
 
 * Top 10 estados por clientes;
 * Top 10 cidades por clientes;
 * Evolução acumulada da base de clientes;
 * Distribuição de clientes por status dos pedidos.
 
----
-
-# 💡 Resultados e Insights
-
-A estruturação dos dados e dos dashboards permite obter diferentes visões estratégicas sobre a operação, como:
-
-* Identificação de regiões com maior concentração de clientes e maior volume de vendas, contribuindo para análises comerciais e logísticas;
-* Identificação de categorias com maior participação no faturamento e comparação entre volume de vendas e valor gerado;
-* Acompanhamento da evolução da base de clientes ao longo do período analisado;
-* Identificação da distribuição de clientes associados aos diferentes status dos pedidos;
-* Comparação entre indicadores comerciais e operacionais para apoiar análises de desempenho.
+> Um mesmo cliente pode aparecer em mais de um status caso tenha realizado pedidos com situações diferentes.
 
 ---
 
-# 🔎 Tratamento e Preparação dos Dados
+## 🚀 Destaques Técnicos
+
+### 🎨 Design Executivo
+
+Interface desenvolvida com foco em **clareza visual, redução de ruídos e Data Storytelling**, utilizando uma identidade visual consistente entre as páginas.
+
+### 🔎 Filtros Interativos
+
+Os dashboards possuem filtros por **ano e estado**, permitindo explorar diferentes recortes da base de dados.
+
+### 🗺️ Cross-Filtering Geográfico
+
+O mapa interativo da visão executiva utiliza `st.session_state` para permitir a seleção de estados e atualização dinâmica das análises relacionadas.
+
+### 🇧🇷 Formatação PT-BR
+
+Valores monetários e quantitativos são apresentados seguindo o padrão brasileiro, incluindo formatação de moeda, milhares e números inteiros.
+
+### ⚡ Performance
+
+Utilização de `@st.cache_data` para evitar o recarregamento desnecessário dos dados e melhorar a performance da aplicação.
+
+### 👥 Clientes Únicos
+
+Utilização de `customer_unique_id` em análises de clientes para evitar a contagem duplicada de consumidores que realizaram múltiplos pedidos.
+
+### 🧩 Organização do Código
+
+As transformações e preparações das bases foram organizadas em funções reutilizáveis dentro da estrutura `views/`, separando a preparação dos dados da camada de apresentação dos dashboards.
+
+---
+
+| Tecnologia     | Utilização                                                  |
+| :------------- | :---------------------------------------------------------- |
+| **Python**     | Desenvolvimento da aplicação e tratamento dos dados         |
+| **Pandas**     | Manipulação, transformação, agrupamento e análise dos dados |
+| **NumPy**      | Operações e suporte ao processamento dos dados              |
+| **Plotly**     | Criação de gráficos e mapas interativos no dashboard        |
+| **Matplotlib** | Aplicação de gradientes de cores nas tabelas do dashboard   |
+| **Streamlit**  | Desenvolvimento da interface e filtros interativos          |
+| **Git/GitHub** | Versionamento e documentação do projeto                     |
+| **IA**         | Apoio na refatoração do código e melhorias de layout        |
+
+
+---
+
+## 🔎 Tratamento e Preparação dos Dados
 
 Durante o desenvolvimento foram realizadas etapas de limpeza, transformação e preparação dos dados utilizando Pandas.
 
-Entre os principais tratamentos:
+Principais tratamentos realizados:
 
-* Conversão de `strings` para `datetime`;
+* Conversão de campos para `datetime`;
 * Tratamento de valores ausentes;
-* Padronização dos nomes de cidades utilizando *Title Case*;
-* Criação de bases unificadas utilizando `merge()`;
+* Padronização dos nomes de cidades;
+* Relacionamento entre diferentes bases utilizando `merge()`;
 * Agrupamentos e agregações utilizando `groupby()`;
 * Contagem de clientes únicos utilizando `nunique()`;
 * Criação de métricas derivadas;
 * Organização das transformações em funções reutilizáveis;
-* Reutilização de bases para reduzir operações repetitivas.
+* Reutilização das bases para reduzir operações repetitivas.
 
 ---
 
-# 📊 Principais Métricas
+## 📌 Principais Métricas
 
 ### Faturamento
 
-Valor total associado aos pedidos analisados.
+Valor total associado aos pedidos considerados na análise.
 
 ### Ticket Médio
 
@@ -180,17 +190,30 @@ Permite acompanhar a evolução do faturamento ao longo do período analisado.
 
 ### Evolução da Base de Clientes
 
-A evolução acumulada considera cada cliente apenas uma vez, utilizando seu primeiro pedido identificado para determinar o período de entrada na base.
+A evolução acumulada considera cada cliente apenas uma vez e utiliza seu primeiro pedido identificado para determinar o período de entrada na base.
 
 ---
 
-# 🧠 Principais Aprendizados
+## 💡 Insights Possíveis
+
+A estrutura dos dashboards permite explorar diferentes aspectos do negócio, como:
+
+* Identificação das regiões com maior concentração de clientes e maior volume de vendas;
+* Identificação das categorias com maior participação no faturamento;
+* Comparação entre volume de pedidos, quantidade de itens e receita;
+* Acompanhamento da evolução da base de clientes;
+* Análise da distribuição de clientes entre diferentes status de pedidos;
+* Comparação entre indicadores comerciais e operacionais.
+
+---
+
+## 🧠 Principais Aprendizados
 
 O desenvolvimento deste projeto permitiu aplicar conceitos importantes de **Data Analytics**, incluindo:
 
 * Exploração e tratamento de dados;
 * Manipulação de DataFrames com Pandas;
-* SQL para análise de dados;
+* Relacionamento entre diferentes bases;
 * Criação e validação de métricas de negócio;
 * `groupby()` e agregações;
 * `merge()` e relacionamento entre tabelas;
@@ -204,22 +227,20 @@ O desenvolvimento deste projeto permitiu aplicar conceitos importantes de **Data
 
 ---
 
-# 🚀 Próximos Passos
+## 🚀 Próximos Passos
 
 Como evolução do projeto, algumas possibilidades são:
 
-* Integração com banco de dados em nuvem, como BigQuery ou PostgreSQL;
-* Automatização do carregamento dos dados;
-* Criação de pipelines utilizando Airflow;
-* Evolução das análises de retenção e recorrência;
-* Análise de Cohort de clientes;
-* Análise RFM;
-* Criação de uma camada analítica utilizando SQL e dbt;
-* Inclusão de novos indicadores de negócio.
+* Evoluir o projeto para uma estrutura de **pipeline de dados**, automatizando as etapas de ingestão, tratamento e disponibilização dos dados;
+* Aprofundar as análises realizadas no dashboard;
+* Incluir novos indicadores de negócio;
+* Explorar análises de comportamento e recorrência dos clientes;
+* Aplicar os conhecimentos adquiridos nos estudos de Engenharia de Dados para evoluir a arquitetura do projeto.
+
 
 ---
 
-# 📁 Estrutura do Projeto
+## 📁 Estrutura do Projeto
 
 ```text
 olistpython/
@@ -241,7 +262,6 @@ olistpython/
 │
 ├── views/
 │   └── Funções de preparação das bases
-│       utilizadas pelos dashboards
 │
 ├── Inicio.py
 ├── requirements.txt
@@ -250,9 +270,9 @@ olistpython/
 
 ---
 
-# 📌 Sobre o Projeto
+## 📌 Sobre o Projeto
 
-Este projeto faz parte do meu portfólio de **Data Analytics** e tem como objetivo demonstrar, na prática, a aplicação de Python, Pandas, SQL e ferramentas de visualização em um problema de negócio.
+Este projeto faz parte do meu portfólio de **Data Analytics** e tem como objetivo demonstrar, na prática, a aplicação de Python, Pandas e ferramentas de visualização em um problema de negócio.
 
 Mais do que construir gráficos, o projeto busca demonstrar o processo de:
 
@@ -267,3 +287,6 @@ Mais do que construir gráficos, o projeto busca demonstrar o processo de:
 Projeto desenvolvido para composição de portfólio na área de **Data Analytics**.
 
 🔗 [GitHub](https://github.com/Carlosarmendoca)
+
+
+
