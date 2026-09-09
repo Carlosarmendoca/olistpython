@@ -2,6 +2,7 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 import numpy as np
+import json
 
 from views.vw_receita_mensal import get_receita_mensal
 from views.vw_top_categorias import get_top_categorias
@@ -385,9 +386,12 @@ df_mapa["ticket_medio"] = (df_mapa["receita_total"] / df_mapa["total_pedidos"]).
 # O geojson traz os contornos geográficos dos estados brasileiros,
 # necessários para o Plotly desenhar o mapa (a base de dados em si
 # só tem a sigla do estado, sem coordenadas).
+with open("dados/brazil_states.geojson", "r", encoding="utf-8") as f:
+       geojson_brasil = json.load(f)
+
 fig_mapa = px.choropleth(
     df_mapa,
-    geojson="https://raw.githubusercontent.com/codeforamerica/click_that_hood/master/public/data/brazil-states.geojson",
+    geojson=geojson_brasil,
     locations="customer_state",
     featureidkey="properties.sigla",
     color="receita_total",
