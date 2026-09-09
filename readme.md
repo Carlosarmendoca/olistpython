@@ -204,7 +204,7 @@ A evolução acumulada considera cada cliente apenas uma vez e utiliza seu prime
 
 A navegação pelos dashboards permitiu identificar alguns padrões relevantes no comportamento de vendas, clientes e logística da Olist.
 
-### 1. São Paulo lidera em faturamento, mas apresenta ticket médio menor
+### 1. São Paulo lidera em faturamento, mas tem ticket médio 14% menor que o Rio de Janeiro, que está em segundo lugar
 
 São Paulo concentra o maior faturamento, com R$ 5,77 milhões, quase três vezes o valor registrado pelo Rio de Janeiro, que ocupa a segunda posição (R$ 2,06 milhões).
 
