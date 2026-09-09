@@ -10,16 +10,13 @@ from views.vw_clientes_regiao import get_vw_clientes_regiao
 # CONFIGURAÇÃO DA PÁGINA
 # ============================================================
 
-st.set_page_config(
-    page_title="Análise de Clientes",
-    layout="wide"
-)
-
+st.set_page_config(page_title="Análise de Clientes", layout="wide")
 
 # ============================================================
 # ESTILIZAÇÃO GLOBAL
 # ============================================================
 
+# Mantém a mesma identidade visual das outras páginas do dashboard.
 st.markdown(
     """
     <style>
@@ -68,13 +65,13 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-
 # ============================================================
 # FUNÇÕES DE FORMATAÇÃO
 # ============================================================
 
 def formatar_contagem(valor):
 
+    # Formato compacto usado nos KPIs (ex: 1,20 mi de clientes).
     if valor >= 1_000_000:
         return f"{valor / 1_000_000:.2f} mi"
 
@@ -82,6 +79,8 @@ def formatar_contagem(valor):
         return f"{valor / 1_000:.3f} mil"
 
     else:
+        # Troca temporária por "X" para inverter os separadores
+        # de milhar e decimal para o padrão brasileiro.
         return (
             f"{valor:,.0f}"
             .replace(",", "X")
@@ -90,8 +89,10 @@ def formatar_contagem(valor):
         )
 
 
-def formata_qtd_barra(valor):
+def formatar_qtd_barra(valor):
 
+    # Mesma lógica de formatar_contagem, usada especificamente
+    # para os rótulos exibidos dentro dos gráficos.
     if valor >= 1_000_000:
         return f"{valor / 1_000_000:.1f} mi"
 
@@ -106,8 +107,10 @@ def formata_qtd_barra(valor):
     )
 
 
-def formata_qtd(valor):
+def formatar_qtd(valor):
 
+    # Versão sem abreviação, usada na tabela de status
+    # (valores completos, sem "mi"/"mil").
     return (
         f"{valor:,.0f}"
         .replace(",", "X")
@@ -133,9 +136,7 @@ def carregar_dados():
         ]
     )
 
-    clientes = pd.read_csv(
-        "dados/clientes_limpo.csv"
-    )
+    clientes = pd.read_csv("dados/clientes_limpo.csv")
 
     return pedidos, clientes
 
@@ -164,17 +165,9 @@ st.caption("Distribuição geográfica de clientes, evolução da base e status 
 # FILTROS GLOBAIS
 # ============================================================
 
-anos_disponiveis = sorted(
-    df_view["ano"]
-    .dropna()
-    .unique()
-)
+anos_disponiveis = sorted(df_view["ano"].dropna().unique())
 
-estados_disponiveis = sorted(
-    df_view["customer_state"]
-    .dropna()
-    .unique()
-)
+estados_disponiveis = sorted(df_view["customer_state"].dropna().unique())
 
 
 with st.expander("⚙️ Abrir Filtros da Página", expanded=False):
@@ -184,17 +177,13 @@ with st.expander("⚙️ Abrir Filtros da Página", expanded=False):
     with col_f1:
 
         ano_selecionado = st.multiselect(
-            "📅 Selecione o Ano",
-            options=anos_disponiveis,
-            default=anos_disponiveis
+            "📅 Selecione o Ano", options=anos_disponiveis, default=anos_disponiveis
         )
 
     with col_f2:
 
         estado_selecionado = st.multiselect(
-            "📍 Selecione o Estado",
-            options=estados_disponiveis,
-            default=estados_disponiveis
+            "📍 Selecione o Estado", options=estados_disponiveis, default=estados_disponiveis
         )
 
 
@@ -232,12 +221,10 @@ df_clientes_base = (
                 "customer_state"
             ]
         ],
-        on="customer_id",
-        how="left"
-    )
-    .dropna(
-        subset=["customer_unique_id"]
-    )
+        on="customer_id", how="left")
+    # Remove pedidos sem cliente correspondente após o merge,
+    # o que evitaria contagens incorretas de clientes únicos.
+    .dropna(subset=["customer_unique_id"])
 )
 
 
@@ -260,59 +247,36 @@ df_clientes_kpi = df_clientes_base.copy()
 # FILTROS DOS KPIs
 # ============================================================
 
+# df_clientes_base não vem filtrado por ano/estado (é usado por
+# outras seções da página em recortes diferentes), então os
+# filtros globais são reaplicados aqui, sobre a cópia dos KPIs.
 if ano_selecionado:
 
     df_clientes_kpi = df_clientes_kpi[
-        df_clientes_kpi[
-            "order_purchase_timestamp"
-        ]
-        .dt.year
-        .isin(ano_selecionado)
-    ]
-
+        df_clientes_kpi["order_purchase_timestamp"].dt.year.isin(ano_selecionado)]
 
 if estado_selecionado:
 
-    df_clientes_kpi = df_clientes_kpi[
-        df_clientes_kpi[
-            "customer_state"
-        ].isin(estado_selecionado)
-    ]
+    df_clientes_kpi = df_clientes_kpi[df_clientes_kpi["customer_state"].isin(estado_selecionado)]
 
 
 # ============================================================
 # CÁLCULO DOS CLIENTES ÚNICOS
 # ============================================================
 
-total_clientes = (
-    df_clientes_kpi[
-        "customer_unique_id"
-    ]
-    .nunique()
-)
+total_clientes = (df_clientes_kpi["customer_unique_id"].nunique())
 
 
 total_entregues = (
-    df_clientes_kpi[
-        df_clientes_kpi["order_status"] == "delivered"
-    ]["customer_unique_id"]
-    .nunique()
+    df_clientes_kpi[df_clientes_kpi["order_status"] == "delivered"]["customer_unique_id"].nunique()
 )
-
 
 total_cancelados = (
-    df_clientes_kpi[
-        df_clientes_kpi["order_status"] == "canceled"
-    ]["customer_unique_id"]
-    .nunique()
+    df_clientes_kpi[df_clientes_kpi["order_status"] == "canceled"]["customer_unique_id"].nunique()
 )
 
-
 total_faturados = (
-    df_clientes_kpi[
-        df_clientes_kpi["order_status"] == "invoiced"
-    ]["customer_unique_id"]
-    .nunique()
+    df_clientes_kpi[df_clientes_kpi["order_status"] == "invoiced"]["customer_unique_id"].nunique()
 )
 
 
@@ -354,9 +318,7 @@ with col_estado:
     if ano_selecionado:
 
         df_estado_clientes = df_estado_clientes[
-            df_estado_clientes[
-                "order_purchase_timestamp"
-            ]
+            df_estado_clientes["order_purchase_timestamp"]
             .dt.year
             .isin(ano_selecionado)
         ]
@@ -364,34 +326,24 @@ with col_estado:
     if estado_selecionado:
 
         df_estado_clientes = df_estado_clientes[
-            df_estado_clientes[
-                "customer_state"
-            ].isin(estado_selecionado)
+            df_estado_clientes["customer_state"].isin(estado_selecionado)
         ]
 
-
+    # Calcula total de clientes e clientes entregues separadamente
+    # para depois comparar as duas métricas lado a lado no gráfico.
     df_estado_total = (
         df_estado_clientes
-        .groupby("customer_state")[
-            "customer_unique_id"
-        ]
+        .groupby("customer_state")["customer_unique_id"]
         .nunique()
-        .reset_index(
-            name="Total de Clientes"
-        )
+        .reset_index(name="Total de Clientes")
     )
 
     df_estado_entregues = (
         df_estado_clientes[
-            df_estado_clientes["order_status"] == "delivered"
-        ]
-        .groupby("customer_state")[
-            "customer_unique_id"
-        ]
+            df_estado_clientes["order_status"] == "delivered"]
+        .groupby("customer_state")["customer_unique_id"]
         .nunique()
-        .reset_index(
-            name="Clientes com Pedidos Entregues"
-        )
+        .reset_index(name="Clientes com Pedidos Entregues")
     )
 
 
@@ -402,6 +354,8 @@ with col_estado:
             on="customer_state",
             how="left"
         )
+        # Estados sem nenhum pedido entregue ficam com NaN após
+        # o merge; fillna(0) trata isso como zero clientes entregues.
         .fillna(0)
         .sort_values(
             "Total de Clientes",
@@ -410,7 +364,9 @@ with col_estado:
         .head(10)
     )
 
-
+    # O melt transforma as duas colunas de métrica em uma única
+    # coluna "Métrica", formato necessário para o Plotly desenhar
+    # as barras agrupadas (barmode="group") lado a lado.
     df_estado_melt = df_estado_top.melt(
         id_vars="customer_state",
         value_vars=[
@@ -456,13 +412,13 @@ with col_estado:
     fig_estado.update_traces(
         textposition="outside",
         textfont_size=10,
+        # Rótulos na vertical (-90°) para caber sem sobrepor
+        # entre as barras agrupadas.
         textangle=-90,
         cliponaxis=False
     )
 
-
     max_y_estado = (df_estado_top["Total de Clientes"].max())
-
 
     fig_estado.update_layout(
         uniformtext_minsize=12,
@@ -470,6 +426,8 @@ with col_estado:
         height=450,
         xaxis_title=None,
         yaxis=dict(
+            # Margem de 40% no topo para dar espaço aos rótulos
+            # verticais das barras sem cortar o texto.
             title=None,
             showgrid=False,
             showticklabels=False,
@@ -485,7 +443,6 @@ with col_estado:
         ),
         margin=dict(l=10, r=10, t=70, b=90)
     )
-
 
     fig_estado.update_xaxes(
         automargin=False
@@ -503,7 +460,6 @@ with col_estado:
 
     st.divider()
 
-
 # ============================================================
 # TOP 10 CIDADES POR CLIENTES
 # ============================================================
@@ -518,18 +474,13 @@ with col_cidade:
 
         df_cidade_clientes = df_cidade_clientes[
             df_cidade_clientes[
-                "order_purchase_timestamp"
-            ]
-            .dt.year
-            .isin(ano_selecionado)
+                "order_purchase_timestamp"].dt.year.isin(ano_selecionado)
         ]
 
     if estado_selecionado:
 
         df_cidade_clientes = df_cidade_clientes[
-            df_cidade_clientes[
-                "customer_state"
-            ].isin(estado_selecionado)
+            df_cidade_clientes["customer_state"].isin(estado_selecionado)
         ]
 
     df_cidade_top = (
@@ -548,6 +499,8 @@ with col_cidade:
         .head(10)
     )
 
+    # Quebra nomes de cidade longos em múltiplas linhas (<br>)
+    # para não sobrepor os rótulos no eixo X do gráfico.
     df_cidade_top["customer_city"] = (
         df_cidade_top["customer_city"]
         .str.title()
@@ -587,12 +540,10 @@ with col_cidade:
         color_discrete_sequence=["#1F3B73"]
     )
 
-
     fig_cidade.update_traces(
         textposition="outside",
         cliponaxis=False
     )
-
 
     max_y_cidade = (df_cidade_top["Total de Clientes"].max())
 
@@ -602,6 +553,8 @@ with col_cidade:
         xaxis=dict(
             title=None,
             tickangle=-45,
+            # type="category" evita que o Plotly tente tratar
+            # os nomes das cidades como valores numéricos ou datas.
             type="category",
             tickfont=dict(size=9)
         ),
@@ -629,9 +582,7 @@ with col_cidade:
         use_container_width=True
     )
 
-
     st.divider()
-
 
 # ============================================================
 # EVOLUÇÃO ACUMULADA DA BASE DE CLIENTES
@@ -648,11 +599,7 @@ df_clientes_evolucao = df_clientes_base.copy()
 if ano_selecionado:
 
     df_clientes_evolucao = df_clientes_evolucao[
-        df_clientes_evolucao[
-            "order_purchase_timestamp"
-        ]
-        .dt.year
-        .isin(ano_selecionado)
+        df_clientes_evolucao["order_purchase_timestamp"].dt.year.isin(ano_selecionado)
     ]
 
 
@@ -672,10 +619,8 @@ if not df_clientes_evolucao.empty:
     # crescimento acumulado da base.
 
     df_primeiro_pedido = (
-        df_clientes_evolucao
-        .groupby("customer_unique_id",as_index=False)["order_purchase_timestamp"].min()
-    )
-
+        df_clientes_evolucao.groupby("customer_unique_id",as_index=False)["order_purchase_timestamp"].min()
+        )
 
     df_primeiro_pedido["data_mes"] = (
         df_primeiro_pedido[
@@ -696,16 +641,14 @@ if not df_clientes_evolucao.empty:
         .sort_values("data_mes")
     )
 
-
+    # cumsum() transforma "novos clientes por mês" em "total
+    # acumulado até aquele mês", que é o que o gráfico exibe.
     df_evolucao["total_acumulado"] = (df_evolucao["novos_clientes"].cumsum())
 
-
-    df_evolucao["Texto"] = (df_evolucao["total_acumulado"].apply(formata_qtd_barra))
-
+    df_evolucao["Texto"] = (df_evolucao["total_acumulado"].apply(formatar_qtd_barra))
 
     # Mantém os 20 meses atualmente utilizados pela visualização.
     df_evolucao_12m = (df_evolucao.tail(20))
-
 
     fig_evolucao = px.line(
         df_evolucao_12m,
@@ -762,13 +705,9 @@ st.divider()
 # CLIENTES POR STATUS DOS PEDIDOS
 # ============================================================
 
-st.subheader(
-    "Clientes por Status dos Pedidos"
-)
+st.subheader("Clientes por Status dos Pedidos")
 
-st.caption(
-    "Quantidade de clientes únicos associados a cada status de pedido."
-)
+st.caption("Quantidade de clientes únicos associados a cada status de pedido.")
 
 
 df_clientes_status = df_clientes_base.copy()
@@ -776,23 +715,16 @@ df_clientes_status = df_clientes_base.copy()
 
 if ano_selecionado:
 
-    df_clientes_status = df_clientes_status[
-        df_clientes_status[
-            "order_purchase_timestamp"
-        ]
-        .dt.year
-        .isin(ano_selecionado)
-    ]
+    df_clientes_status = df_clientes_status[df_clientes_status["order_purchase_timestamp"].dt.year.isin(ano_selecionado)]
 
 
 if estado_selecionado:
 
-    df_clientes_status = df_clientes_status[
-        df_clientes_status[
-            "customer_state"
-        ].isin(estado_selecionado)]
+    df_clientes_status = df_clientes_status[df_clientes_status["customer_state"].isin(estado_selecionado)]
 
 
+# Traduz os status originais do dataset (em inglês) para
+# rótulos legíveis em português na tabela final.
 status_traducao = {
     "delivered": "Entregue",
     "shipped": "Em Transporte",
@@ -805,31 +737,18 @@ status_traducao = {
 }
 
 
-df_clientes_status["status_pt"] = (
-    df_clientes_status["order_status"]
-    .map(status_traducao)
-    .fillna("Outros")
-)
+# fillna("Outros") cobre qualquer status do dataset que não
+# esteja mapeado no dicionário acima, evitando exibir "None".
+df_clientes_status["status_pt"] = (df_clientes_status["order_status"].map(status_traducao).fillna("Outros"))
 
 
 df_status_tab = (
     df_clientes_status
-    .groupby("status_pt")[
-        "customer_unique_id"
-    ]
+    .groupby("status_pt")["customer_unique_id"]
     .nunique()
-    .reset_index(
-        name="Total de Clientes"
-    )
-    .sort_values(
-        "Total de Clientes",
-        ascending=False
-    )
-    .rename(
-        columns={
-            "status_pt": "Status"
-        }
-    )
+    .reset_index(name="Total de Clientes")
+    .sort_values("Total de Clientes", ascending=False)
+    .rename(columns={"status_pt": "Status"})
 )
 
 
@@ -837,26 +756,17 @@ df_status_tab = (
 # Um mesmo cliente pode aparecer em mais de um status caso
 # tenha realizado pedidos com situações diferentes.
 
+# Por isso, a linha "Total Geral" NÃO é a soma das linhas acima
+# (isso contaria o mesmo cliente mais de uma vez); é calculada
+# separadamente, contando clientes únicos sobre a base toda.
 total_row = pd.DataFrame(
     [
-        {
-            "Status": "Total Geral",
-            "Total de Clientes": (
-                df_clientes_status[
-                    "customer_unique_id"
-                ].nunique()
-            )
-        }
+        {"Status": "Total Geral", "Total de Clientes": (df_clientes_status["customer_unique_id"].nunique())}
+
     ]
 )
 
-
-df_exibir = pd.concat(
-    [
-        df_status_tab,
-        total_row
-    ],ignore_index=True
-)
+df_exibir = pd.concat([df_status_tab, total_row],ignore_index=True)
 
 
 # ============================================================
@@ -872,7 +782,7 @@ st.dataframe(
     .format(
         {
             "Total de Clientes":
-                formata_qtd
+                formatar_qtd
         }
     ),
     use_container_width=True,

@@ -16,6 +16,8 @@ st.set_page_config(page_title="Desempenho das Categorias",layout="wide")
 # ESTILIZAÇÃO GLOBAL
 # ============================================================
 
+# Mantém a mesma identidade visual das outras páginas do
+# dashboard (tamanhos de fonte, largura da sidebar, etc).
 st.markdown(
     """
     <style>
@@ -71,6 +73,7 @@ st.markdown(
 
 def formatar_moeda_card(valor):
 
+    # Formato compacto para os KPIs (ex: R$ 1,50 mi).
     if valor >= 1_000_000:
         return f"R$ {valor / 1_000_000:.2f} mi"
 
@@ -80,6 +83,8 @@ def formatar_moeda_card(valor):
     else:
         texto = f"R$ {valor:,.2f}"
 
+        # Troca temporária por "X" para inverter os separadores
+        # de milhar e decimal para o padrão brasileiro.
         return (
             texto
             .replace(",", "X")
@@ -100,6 +105,9 @@ def formatar_contagem(valor):
 
 def formatar_barra(valor):
 
+    # Versão compacta usada nos rótulos das barras do gráfico;
+    # diferente de formatar_moeda_card, não aplica a troca de
+    # separadores no valor completo (sem abreviação).
     if valor >= 1_000_000:
         return f"R$ {valor / 1_000_000:.1f} mi"
 
@@ -147,10 +155,7 @@ def carregar_dados():
         ]
     )
 
-    itens = pd.read_csv(
-        "dados/itens_limpo.csv",
-        parse_dates=["shipping_limit_date"]
-    )
+    itens = pd.read_csv("dados/itens_limpo.csv", parse_dates=["shipping_limit_date"])
 
     produtos = pd.read_csv("dados/produtos_limpo.csv")
 
@@ -158,21 +163,15 @@ def carregar_dados():
 
     return pedidos, itens, produtos, clientes
 
-
 pedidos, itens, produtos, clientes = carregar_dados()
-
 
 # ============================================================
 # PREPARAÇÃO DA BASE ANALÍTICA
 # ============================================================
 
-df_categorias = get_top_categorias(
-    pedidos,
-    itens,
-    produtos,
-    clientes
-)
-
+# A view concentra o relacionamento entre pedidos, itens,
+# produtos e clientes, já agregando por categoria.
+df_categorias = get_top_categorias(pedidos, itens, produtos, clientes)
 
 # ============================================================
 # CABEÇALHO
@@ -187,18 +186,9 @@ st.caption("Análise de receita, volume de vendas e ticket médio por categoria.
 # FILTROS GLOBAIS
 # ============================================================
 
-anos_disponiveis = sorted(
-    pedidos["order_purchase_timestamp"]
-    .dt.year
-    .dropna()
-    .unique()
-)
+anos_disponiveis = sorted(pedidos["order_purchase_timestamp"].dt.year.dropna().unique())
 
-estados_disponiveis = sorted(
-    clientes["customer_state"]
-    .dropna()
-    .unique()
-)
+estados_disponiveis = sorted(clientes["customer_state"].dropna().unique())
 
 
 with st.expander("⚙️ Abrir Filtros da Página",expanded=False):
@@ -221,7 +211,6 @@ with st.expander("⚙️ Abrir Filtros da Página",expanded=False):
             default=estados_disponiveis
         )
 
-
 # ============================================================
 # APLICAÇÃO DOS FILTROS
 # ============================================================
@@ -238,12 +227,14 @@ if estado_selecionado:
 # TRATAMENTO DE TEXTO
 # ============================================================
 
+# Categorias vêm em snake_case no dataset original
+# (ex: "moveis_decoracao"); aqui viram texto legível
+# para exibição nos gráficos e tabelas.
 df_categorias["product_category_name"] = (
     df_categorias["product_category_name"]
     .str.replace("_", " ")
     .str.title()
 )
-
 
 # ============================================================
 # INDICADORES DE CATEGORIAS
@@ -265,6 +256,8 @@ total_pedidos = df_categorias["total_pedidos"].sum()
 total_itens = df_categorias["total_itens"].sum()
 
 
+# Evita divisão por zero quando os filtros (ano/estado)
+# não retornam nenhum pedido.
 if total_pedidos > 0:
 
     ticket_medio = round(receita_total / total_pedidos,2)
@@ -322,8 +315,11 @@ df_cat = (
 
 df_cat["ticket_medio"] = (df_cat["receita_total"] / df_cat["total_pedidos"]).round(2)
 
+# O preço médio por item considera somente o valor dos produtos,
+# diferente do preco_medio_item calculado lá em cima nos KPIs
+# (que inclui o frete). As duas métricas coexistem de propósito
+# para responder perguntas de negócio diferentes.
 
-# O preço médio por item considera somente o valor dos produtos.
 df_cat["preco_medio_item"] = (df_cat["receita_produtos"] / df_cat["total_itens"]).round(2)
 
 
@@ -354,7 +350,6 @@ fig_cat.update_traces(
     cliponaxis=False
 )
 
-
 fig_cat.update_layout(
     height=300,
     bargap=0.45,
@@ -365,12 +360,13 @@ fig_cat.update_layout(
         showticklabels=False
     ),
     yaxis=dict(
+        # "total ascending" ordena as barras pelo valor,
+        # deixando a maior categoria no topo do gráfico.
         title=None,
         categoryorder="total ascending"
     ),
     margin=dict(r=70, l=10, t=10, b=10)
 )
-
 
 st.plotly_chart(
     fig_cat,
@@ -385,7 +381,6 @@ st.divider()
 
 st.subheader("Evolução Mensal do Ticket Médio")
 
-
 df_ticket = (
     df_categorias
     .groupby(["data_mes", "ano"])
@@ -395,7 +390,6 @@ df_ticket = (
     )
     .reset_index()
 )
-
 
 df_ticket["ticket_medio"] = (df_ticket["receita_total"] / df_ticket["total_pedidos"]).round(2)
 
@@ -410,14 +404,12 @@ df_ticket["ticket_texto"] = (df_ticket["ticket_medio"].apply(formatar_br))
 # a leitura compacta da visualização.
 df_ticket_12m = df_ticket.tail(12)
 
-
 fig_ticket = px.line(
     df_ticket_12m,
     x="data_mes",
     y="ticket_medio",
     text="ticket_texto"
 )
-
 
 max_y_ticket = df_ticket_12m["ticket_medio"].max()
 
@@ -434,6 +426,8 @@ fig_ticket.update_layout(
     xaxis_tickangle=-45,
     xaxis_title=None,
     yaxis=dict(
+        # Margem no range (98%/105%) em vez de começar do zero,
+        # para destacar melhor a variação do ticket médio mês a mês.
         title=None,
         showgrid=False,
         showticklabels=False,
@@ -445,9 +439,7 @@ fig_ticket.update_layout(
     margin=dict(r=20, l=10, t=0, b=10)
 )
 
-
 st.plotly_chart(fig_ticket,use_container_width=True)
-
 
 st.divider()
 
@@ -458,7 +450,6 @@ st.divider()
 st.subheader("Resumo por Categoria")
 
 st.caption("Comparativo de faturamento, pedidos, itens e valores médios por categoria.")
-
 
 df_tabela = (
     df_categorias
@@ -498,11 +489,12 @@ df_tabela_exibicao = (
             "valor_medio_item_com_frete": "Valor Médio c/ Frete"
         }
     )
+    # receita_produtos já foi usada para calcular preco_medio_item;
+    # não é exibida diretamente na tabela final.
     .drop(
         columns=["receita_produtos"]
     )
 )
-
 
 # ============================================================
 # ESTILIZAÇÃO DA TABELA
@@ -510,6 +502,8 @@ df_tabela_exibicao = (
 
 df_tabela_estilo = (
     df_tabela_exibicao.style
+    # Destaca visualmente as categorias de maior faturamento
+    # através de um gradiente de cor na coluna.
     .background_gradient(
         subset=["Faturamento"],
         cmap="Blues"
@@ -531,7 +525,6 @@ df_tabela_estilo = (
     )
 )
 
-
 # ============================================================
 # EXIBIÇÃO DA TABELA
 # ============================================================
@@ -542,6 +535,5 @@ st.dataframe(
     height=550,
     hide_index=True
 )
-
 
 st.divider()

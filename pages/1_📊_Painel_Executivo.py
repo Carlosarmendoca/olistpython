@@ -12,11 +12,7 @@ from views.vw_receita_por_estado import get_receita_por_estado
 # CONFIGURAÇÃO DA PÁGINA
 # ============================================================
 
-st.set_page_config(
-    page_title="Painel Executivo",
-    layout="wide"
-)
-
+st.set_page_config( page_title="Painel Executivo", layout="wide")
 
 # ============================================================
 # ESTILIZAÇÃO GLOBAL
@@ -80,6 +76,9 @@ st.markdown(
 def formatar_moeda_card(valor):
     """Formata valores monetários para exibição nos KPIs."""
 
+    # Formato compacto para valores grandes, evitando números
+    # extensos nos cards de indicador (ex: R$ 1,50 mi em vez
+    # de R$ 1.500.000,00).
     if valor >= 1_000_000:
         return f"R$ {valor / 1_000_000:.2f} mi"
 
@@ -88,6 +87,10 @@ def formatar_moeda_card(valor):
 
     texto = f"R$ {valor:,.2f}"
 
+    # Python formata número com vírgula de milhar e ponto decimal
+    # (padrão americano). Troca-se "," por "X" temporariamente
+    # para não confundir os símbolos ao inverter para o padrão
+    # brasileiro (ponto de milhar, vírgula decimal).
     return (
         texto
         .replace(",", "X")
@@ -101,6 +104,8 @@ def formatar_contagem(valor):
 
     texto = f"{valor:,.0f}"
 
+    # Mesma troca temporária por "X" explicada em formatar_moeda_card,
+    # aqui aplicada a números inteiros (sem casas decimais).
     return (
         texto
         .replace(",", "X")
@@ -112,6 +117,8 @@ def formatar_contagem(valor):
 def formatar_quantidade_compacta(valor):
     """Formata quantidades para rótulos compactos dos gráficos."""
 
+    # Mantém os rótulos curtos dentro dos gráficos, já que números
+    # completos poluiriam a visualização (ex: barras e linhas).
     if valor >= 1_000_000:
         return f"{valor / 1_000_000:.1f} mi"
 
@@ -129,6 +136,8 @@ def formatar_quantidade_compacta(valor):
 def formatar_receita_compacta(valor):
     """Formata valores de receita para rótulos dos gráficos."""
 
+    # Mesma lógica de formatar_quantidade_compacta, mas com o
+    # prefixo "R$" para valores monetários exibidos em gráficos.
     if valor >= 1_000_000:
         return f"R$ {valor / 1_000_000:.1f} mi"
 
@@ -146,6 +155,8 @@ def formatar_receita_compacta(valor):
 def formatar_br(valor):
     """Formata valores monetários no padrão brasileiro."""
 
+    # Trata valores ausentes (NaN) que podem aparecer em células
+    # de tabela sem dado correspondente, evitando exibir "R$ nan".
     if pd.isna(valor):
         return "-"
 
@@ -160,11 +171,15 @@ def formatar_br(valor):
 def formatar_pct(valor):
     """Formata percentuais no padrão brasileiro."""
 
+    # Ex: linhas do MoM sem mês anterior para comparação
+    # (primeiro mês da série) resultam em NaN.
     if pd.isna(valor):
         return "-"
 
+    # Percentual não precisa da troca de "," por "X" porque não
+    # existe separador de milhar em valores dessa faixa — só a
+    # vírgula decimal precisa ser ajustada.
     return f"{valor:.2f}%".replace(".", ",")
-
 
 # ============================================================
 # CARREGAMENTO DOS DADOS
@@ -175,6 +190,9 @@ def formatar_pct(valor):
 @st.cache_data
 def carregar_dados():
 
+    # As colunas de data já vêm como texto no CSV, então
+    # parse_dates converte para datetime na leitura, evitando
+    # ter que fazer essa conversão depois em cada página.
     pedidos = pd.read_csv(
         "dados/pedidos_limpo.csv",
         parse_dates=[
@@ -186,23 +204,17 @@ def carregar_dados():
         ]
     )
 
-    clientes = pd.read_csv(
-        "dados/clientes_limpo.csv"
-    )
+    clientes = pd.read_csv("dados/clientes_limpo.csv")
 
-    itens = pd.read_csv(
-        "dados/itens_limpo.csv",
-        parse_dates=["shipping_limit_date"]
-    )
+    itens = pd.read_csv("dados/itens_limpo.csv", parse_dates=["shipping_limit_date"])
 
-    pagamentos = pd.read_csv(
-        "dados/pagamentos_limpo.csv"
-    )
+    pagamentos = pd.read_csv("dados/pagamentos_limpo.csv")
 
-    produtos = pd.read_csv(
-        "dados/produtos_limpo.csv"
-    )
+    produtos = pd.read_csv("dados/produtos_limpo.csv")
 
+    # Retorna todas as bases de uma vez, já que as páginas
+    # precisam relacioná-las entre si (merge/groupby) para
+    # montar as views analíticas.
     return (
         pedidos,
         clientes,
@@ -211,10 +223,7 @@ def carregar_dados():
         produtos
     )
 
-
 pedidos, clientes, itens, pagamentos, produtos = carregar_dados()
-
-
 # ============================================================
 # PREPARAÇÃO DAS BASES ANALÍTICAS
 # ============================================================
@@ -222,25 +231,11 @@ pedidos, clientes, itens, pagamentos, produtos = carregar_dados()
 # As views concentram as regras de transformação e agregação.
 # A página utiliza essas bases para construir os indicadores
 # e gráficos sem duplicar regras de negócio na interface.
-df_estado = get_receita_por_estado(
-    pedidos,
-    clientes,
-    pagamentos
-)
+df_estado = get_receita_por_estado(pedidos, clientes, pagamentos)
 
-df_receita = get_receita_mensal(
-    pedidos,
-    pagamentos,
-    clientes
-)
+df_receita = get_receita_mensal(pedidos, pagamentos, clientes)
 
-df_categorias = get_top_categorias(
-    pedidos,
-    itens,
-    produtos,
-    clientes
-)
-
+df_categorias = get_top_categorias(pedidos, itens, produtos, clientes)
 
 # ============================================================
 # CABEÇALHO
@@ -248,48 +243,35 @@ df_categorias = get_top_categorias(
 
 st.title("🛒 Painel Executivo de Vendas")
 
-st.caption(
-    "Visão geral de receita, pedidos, desempenho regional e logística."
-)
+st.caption("Visão geral de receita, pedidos, desempenho regional e logística.")
 
 
 # ============================================================
 # 1. FILTRO GLOBAL DE TEMPO
 # ============================================================
 
-anos_disponiveis = sorted(
-    pedidos["order_purchase_timestamp"]
-    .dt.year
-    .dropna()
-    .unique()
-)
+# dropna() remove eventuais datas ausentes antes de extrair os
+# anos, evitando um valor "NaN" aparecer como opção de filtro.
+anos_disponiveis = sorted(pedidos["order_purchase_timestamp"].dt.year.dropna().unique())
 
-with st.expander(
-    "⚙️ Abrir Filtros da Página",
-    expanded=False
-):
+# O expander mantém os filtros escondidos por padrão, deixando
+# os indicadores e gráficos visíveis assim que a página carrega.
+with st.expander("⚙️ Abrir Filtros da Página", expanded=False):
 
-    ano_selecionado = st.multiselect(
-        "📅 Selecione o Ano",
-        options=anos_disponiveis,
-        default=anos_disponiveis
-    )
+    ano_selecionado = st.multiselect("📅 Selecione o Ano", options=anos_disponiveis, default=anos_disponiveis)
 
 
 # Aplica o filtro temporal às três bases analíticas.
+# O "if" evita erro caso o usuário desmarque todos os anos:
+# sem filtro aplicado, os dataframes originais são mantidos
+# em vez de retornar vazios.
 if ano_selecionado:
 
-    df_estado = df_estado[
-        df_estado["ano"].isin(ano_selecionado)
-    ]
+    df_estado = df_estado[df_estado["ano"].isin(ano_selecionado)]
 
-    df_receita = df_receita[
-        df_receita["ano"].isin(ano_selecionado)
-    ]
+    df_receita = df_receita[df_receita["ano"].isin(ano_selecionado)]
 
-    df_categorias = df_categorias[
-        df_categorias["ano"].isin(ano_selecionado)
-    ]
+    df_categorias = df_categorias[df_categorias["ano"].isin(ano_selecionado)]
 
 
 # ============================================================
@@ -298,21 +280,18 @@ if ano_selecionado:
 
 estado_selecionado_mapa = None
 
-
 # O Plotly armazena a seleção no session_state.
 # Como o Streamlit executa a página novamente após a interação,
 # a seleção precisa ser recuperada antes da construção dos KPIs.
 if "meu_mapa_interativo" in st.session_state:
 
-    selecao = st.session_state[
-        "meu_mapa_interativo"
-    ].get("selection", {})
+    selecao = st.session_state["meu_mapa_interativo"].get("selection", {})
 
+    # "points" só existe quando o usuário efetivamente clicou
+    # em algum estado do mapa; sem clique, a seleção vem vazia.
     if selecao and selecao.get("points"):
 
-        estado_selecionado_mapa = (
-            selecao["points"][0]["location"]
-        )
+        estado_selecionado_mapa = (selecao["points"][0]["location"])
 
 
 # ============================================================
@@ -324,10 +303,7 @@ if "meu_mapa_interativo" in st.session_state:
 # Sem seleção, representa o Brasil inteiro.
 if estado_selecionado_mapa:
 
-    df_kpi = df_estado[
-        df_estado["customer_state"]
-        == estado_selecionado_mapa
-    ]
+    df_kpi = df_estado[df_estado["customer_state"] == estado_selecionado_mapa]
 
 else:
 
@@ -341,7 +317,6 @@ st.subheader("Indicadores Gerais")
 
 col1, col2, col3, col4 = st.columns(4)
 
-
 # ------------------------------------------------------------
 # Cálculo dos indicadores
 # ------------------------------------------------------------
@@ -351,21 +326,18 @@ receita_total = df_kpi["receita_total"].sum()
 total_pedidos = df_kpi["total_pedidos"].sum()
 
 
-# Evita divisão por zero quando o filtro não retorna pedidos.
+# Evita divisão por zero quando o filtro (ano ou estado) não
+# retorna nenhum pedido.
 if total_pedidos > 0:
 
-    ticket_medio = (
-        receita_total
-        / total_pedidos
-    )
+    ticket_medio = (receita_total / total_pedidos)
 
-    prazo_medio = (
-        df_kpi["soma_dias_total"].sum()
-        / df_kpi["total_pedidos"].sum()
-    )
+    # soma_dias_total já vem pré-calculada na view como a soma
+    # dos dias de entrega de todos os pedidos, permitindo obter
+    # a média sem reprocessar os dados brutos aqui na página.
+    prazo_medio = (df_kpi["soma_dias_total"].sum() / df_kpi["total_pedidos"].sum())
 
 else:
-
     ticket_medio = 0
     prazo_medio = 0
 
@@ -374,36 +346,19 @@ else:
 # Exibição dos indicadores
 # ------------------------------------------------------------
 
-col1.metric(
-    "Faturamento Total",
-    formatar_moeda_card(receita_total)
-)
+col1.metric("Faturamento Total", formatar_moeda_card(receita_total))
 
-col2.metric(
-    "Total de Pedidos",
-    formatar_contagem(total_pedidos)
-)
+col2.metric("Total de Pedidos", formatar_contagem(total_pedidos))
 
-col3.metric(
-    "Ticket Médio",
-    formatar_moeda_card(ticket_medio)
-)
+col3.metric("Ticket Médio", formatar_moeda_card(ticket_medio))
 
-texto_prazo = (
-    f"{prazo_medio:.1f} dias"
-    .replace(".", ",")
-)
+texto_prazo = (f"{prazo_medio:.1f} dias".replace(".", ","))
 
-col4.metric(
-    "Prazo Médio de Entrega",
-    texto_prazo
-)
-
+col4.metric("Prazo Médio de Entrega", texto_prazo)
 
 st.write("")
 
 st.divider()
-
 
 # ============================================================
 # 4. MAPA DO BRASIL
@@ -411,10 +366,7 @@ st.divider()
 
 st.subheader("Faturamento por Estado")
 
-st.caption(
-    "Clique em um estado para filtrar os indicadores e análises abaixo."
-)
-
+st.caption("Clique em um estado para filtrar os indicadores e análises abaixo.")
 
 # O mapa utiliza a base filtrada apenas pelo ano.
 # df_kpi não é utilizado porque pode estar restrito a um estado.
@@ -422,29 +374,24 @@ st.caption(
 df_mapa = (
     df_estado
     .groupby("customer_state")
-    .agg(
-        receita_total=("receita_total", "sum"),
-        total_pedidos=("total_pedidos", "sum")
+    .agg(receita_total=("receita_total", "sum"),total_pedidos=("total_pedidos", "sum")
     )
     .reset_index()
 )
 
-df_mapa["ticket_medio"] = (
-    df_mapa["receita_total"]
-    / df_mapa["total_pedidos"]
-).round(2)
+df_mapa["ticket_medio"] = (df_mapa["receita_total"] / df_mapa["total_pedidos"]).round(2)
 
 
+# O geojson traz os contornos geográficos dos estados brasileiros,
+# necessários para o Plotly desenhar o mapa (a base de dados em si
+# só tem a sigla do estado, sem coordenadas).
 fig_mapa = px.choropleth(
     df_mapa,
     geojson="https://raw.githubusercontent.com/codeforamerica/click_that_hood/master/public/data/brazil-states.geojson",
     locations="customer_state",
     featureidkey="properties.sigla",
     color="receita_total",
-    hover_data=[
-        "total_pedidos",
-        "ticket_medio"
-    ],
+    hover_data=["total_pedidos", "ticket_medio"],
     color_continuous_scale="Blues",
     labels={
         "customer_state": "Estado",
@@ -454,19 +401,11 @@ fig_mapa = px.choropleth(
     }
 )
 
-fig_mapa.update_geos(
-    fitbounds="locations",
-    visible=False
-)
+# fitbounds ajusta o zoom para enquadrar só o território
+# brasileiro; visible=False remove países vizinhos do fundo.
+fig_mapa.update_geos(fitbounds="locations", visible=False)
 
-fig_mapa.update_layout(
-    margin={
-        "r": 0,
-        "t": 10,
-        "l": 0,
-        "b": 10
-    }
-)
+fig_mapa.update_layout(margin={"r": 0, "t": 10, "l": 0, "b": 10})
 
 
 # A key identifica o gráfico no session_state e permite
@@ -478,7 +417,6 @@ st.plotly_chart(
     key="meu_mapa_interativo"
 )
 
-
 # ============================================================
 # 5. CROSS-FILTERING
 # ============================================================
@@ -489,22 +427,13 @@ if estado_selecionado_mapa:
 
     st.info(
         f"📍 Estado selecionado: **{estado_selecionado_mapa}**. "
-        "Clique novamente no estado para retornar à visão nacional."
-    )
+        "Clique novamente no estado para retornar à visão nacional.")
 
-    df_categorias = df_categorias[
-        df_categorias["customer_state"]
-        == estado_selecionado_mapa
-    ]
+    df_categorias = df_categorias[df_categorias["customer_state"] == estado_selecionado_mapa]
 
-    df_receita = df_receita[
-        df_receita["customer_state"]
-        == estado_selecionado_mapa
-    ]
-
+    df_receita = df_receita[df_receita["customer_state"] == estado_selecionado_mapa]
 
 st.divider()
-
 
 # ============================================================
 # 6. TOP 10 CATEGORIAS POR PEDIDOS
@@ -524,37 +453,27 @@ df_cat = (
         total_itens=("total_itens", "sum")
     )
     .reset_index()
-    .sort_values(
-        "total_pedidos",
-        ascending=False
-    )
-    .head(10)
+    .sort_values("total_pedidos", ascending=False).head(10)
 )
 
 
+# df_cat pode ficar vazio quando o cross-filtering do mapa
+# seleciona um estado sem pedidos de categoria registrados;
+# o "if" evita erro de divisão por zero nos cálculos abaixo.
 if not df_cat.empty:
 
-    df_cat["ticket_medio"] = (
-        df_cat["receita_total"]
-        / df_cat["total_pedidos"]
-    ).round(2)
+    df_cat["ticket_medio"] = (df_cat["receita_total"] / df_cat["total_pedidos"]).round(2)
 
-    df_cat["preco_medio_item"] = (
-        df_cat["receita_total"]
-        / df_cat["total_itens"]
-    ).round(2)
+    df_cat["preco_medio_item"] = (df_cat["receita_total"] / df_cat["total_itens"]).round(2)
 
+    # Categorias vêm do dataset original em snake_case
+    # (ex: "moveis_decoracao"); aqui viram texto legível
+    # para exibição ("Moveis Decoracao").
     df_cat["product_category_name"] = (
-        df_cat["product_category_name"]
-        .str.replace("_", " ")
-        .str.title()
+        df_cat["product_category_name"].str.replace("_", " ").str.title()
     )
 
-    df_cat["texto_pedidos"] = (
-        df_cat["total_pedidos"]
-        .apply(formatar_quantidade_compacta)
-    )
-
+    df_cat["texto_pedidos"] = (df_cat["total_pedidos"].apply(formatar_quantidade_compacta))
 
     fig_cat = px.bar(
         df_cat,
@@ -573,13 +492,10 @@ if not df_cat.empty:
         }
     )
 
-
     fig_cat.update_traces(
         textposition="outside",
         textfont_size=12,
-        cliponaxis=False
-    )
-
+        cliponaxis=False)
 
     fig_cat.update_layout(
         height=300,
@@ -591,32 +507,21 @@ if not df_cat.empty:
             showticklabels=False
         ),
         yaxis=dict(
+            # "total ascending" ordena as barras pelo valor,
+            # deixando a maior categoria no topo do gráfico.
             title=None,
             categoryorder="total ascending"
         ),
-        margin=dict(
-            r=70,
-            l=10,
-            t=10,
-            b=10
-        )
+        margin=dict(r=70, l=10, t=10, b=10)
     )
 
-
-    st.plotly_chart(
-        fig_cat,
-        use_container_width=True
-    )
+    st.plotly_chart(fig_cat, use_container_width=True)
 
 else:
 
-    st.warning(
-        "Não há dados de categorias para o estado selecionado."
-    )
-
+    st.warning("Não há dados de categorias para o estado selecionado.")
 
 st.divider()
-
 
 # ============================================================
 # 7. EVOLUÇÃO MENSAL DO FATURAMENTO
@@ -630,27 +535,14 @@ if not df_receita.empty:
     df_linha = (
         df_receita
         .groupby(
-            [
-                "ano",
-                "mes",
-                "ano_mes"
-            ]
-        )
-        .agg(
-            receita_total=("receita_total", "sum")
+            ["ano", "mes", "ano_mes"]
+        ).agg(receita_total=("receita_total", "sum")
         )
         .reset_index()
-        .sort_values(
-            ["ano", "mes"]
-        )
+        .sort_values(["ano", "mes"])
     )
 
-
-    df_linha["texto_receita"] = (
-        df_linha["receita_total"]
-        .apply(formatar_receita_compacta)
-    )
-
+    df_linha["texto_receita"] = (df_linha["receita_total"].apply(formatar_receita_compacta))
 
     # Limita a visualização aos últimos 12 meses para manter
     # os rótulos legíveis e evitar excesso de informação.
@@ -669,19 +561,20 @@ if not df_receita.empty:
         }
     )
 
-
     fig_receita.update_traces(
         textposition="top center",
         textfont=dict(size=10),
         cliponaxis=False
     )
 
-
     max_y = df_linha_12m["receita_total"].max()
 
     min_y = df_linha_12m["receita_total"].min()
 
 
+    # O range do eixo Y usa uma margem (95%/110%) em vez de
+    # começar em zero, para que as variações entre os meses
+    # fiquem mais visíveis na linha do gráfico.
     fig_receita.update_layout(
         height=220,
         xaxis_tickangle=-45,
@@ -695,29 +588,17 @@ if not df_receita.empty:
                 max_y * 1.10
             ]
         ),
-        margin=dict(
-            r=20,
-            l=10,
-            t=0,
-            b=10
-        )
+        margin=dict(r=20, l=10, t=0, b=10)
     )
 
 
-    st.plotly_chart(
-        fig_receita,
-        use_container_width=True
-    )
+    st.plotly_chart(fig_receita, use_container_width=True)
 
 else:
 
-    st.warning(
-        "Não há dados de receita para o estado selecionado."
-    )
-
+    st.warning("Não há dados de receita para o estado selecionado.")
 
 st.divider()
-
 
 # ============================================================
 # 8. ANÁLISE MoM — MONTH OVER MONTH
@@ -750,74 +631,41 @@ if estado_selecionado_mapa:
                 "receita_mes_anterior",
                 "variacao_mom_pct"
             ]
-        ]
-        .copy()
-        .sort_values(
-            ["ano", "mes"]
-        )
+        ].copy().sort_values(["ano", "mes"])
     )
 
 else:
-
     df_mom = (
         df_receita
         .groupby(
-            [
-                "ano",
-                "mes",
-                "mes_nome",
-                "ano_mes"
-            ],
+            ["ano", "mes", "mes_nome", "ano_mes"],
             as_index=False
-        )
-        .agg(
-            receita_total=("receita_total", "sum")
-        )
-        .sort_values(
-            ["ano", "mes"]
-        )
+        ).agg(receita_total=("receita_total", "sum"))
+        .sort_values(["ano", "mes"])
     )
-
 
     # Na visão nacional, calcula a receita do mês anterior
     # após a consolidação mensal.
-    df_mom["receita_mes_anterior"] = (
-        df_mom["receita_total"].shift(1)
-    )
+    df_mom["receita_mes_anterior"] = (df_mom["receita_total"].shift(1))
 
+    # np.where evita divisão por zero quando não há receita
+    # no mês anterior (ex: primeiro mês da série ou mês sem
+    # nenhum pedido registrado).
 
-    df_mom["variacao_mom_pct"] = np.where(
-        df_mom["receita_mes_anterior"] > 0,
-        (
-            (
-                df_mom["receita_total"]
-                - df_mom["receita_mes_anterior"]
-            )
-            / df_mom["receita_mes_anterior"]
-            * 100
-        ),
-        np.nan
-    ).round(2)
-
+    df_mom["variacao_mom_pct"] = np.where(df_mom["receita_mes_anterior"] > 0,
+        ((df_mom["receita_total"] - df_mom["receita_mes_anterior"]) 
+         / df_mom["receita_mes_anterior"] * 100), np.nan).round(2)
 
     # Limita variações superiores a 1000% para evitar que
     # bases de comparação muito pequenas distorçam a leitura.
-    df_mom.loc[
-        df_mom["variacao_mom_pct"] > 1000,
-        "variacao_mom_pct"
-    ] = np.nan
 
+    df_mom.loc[df_mom["variacao_mom_pct"] > 1000, "variacao_mom_pct"] = np.nan
 
 # ============================================================
 # PREPARAÇÃO DA TABELA MoM
 # ============================================================
 
-df_mom["Mês"] = (
-    df_mom["mes_nome"]
-    + "/"
-    + df_mom["ano"].astype(str)
-)
-
+df_mom["Mês"] = (df_mom["mes_nome"] + "/" + df_mom["ano"].astype(str))
 
 df_mom_tabela = (
     df_mom[
@@ -838,18 +686,17 @@ df_mom_tabela = (
 )
 
 
-# Identifica o contexto utilizado na análise.
+# Identifica o contexto utilizado na análise, já que a mesma
+# tabela é usada tanto para o Brasil quanto para um estado
+# específico selecionado no mapa.
+
 if estado_selecionado_mapa:
 
-    st.caption(
-        f"📍 Análise MoM do estado **{estado_selecionado_mapa}**"
-    )
+    st.caption(f"📍 Análise MoM do estado **{estado_selecionado_mapa}**")
 
 else:
 
-    st.caption(
-        "🌎 Análise MoM do Brasil"
-    )
+    st.caption("🌎 Análise MoM do Brasil")
 
 
 # ============================================================
@@ -861,10 +708,8 @@ else:
 df_tabela_estilo = (
     df_mom_tabela
     .style
-    .set_properties(
-        **{"text-align": "right"}
-    )
-    .format(
+    .set_properties(**{"text-align": "right"}
+    ).format(
         {
             "Receita": formatar_br,
             "Receita Mês Anterior": formatar_br,
@@ -872,7 +717,6 @@ df_tabela_estilo = (
         }
     )
 )
-
 
 # ============================================================
 # EXIBIÇÃO DA TABELA
