@@ -210,7 +210,7 @@ São Paulo concentra o maior faturamento, com R$ 5,77 milhões, quase três veze
 
 Apesar disso, o ticket médio paulista é 14% menor: R$ 142,47 contra R$ 166,45 no Rio de Janeiro.
 
-**Leitura:** São Paulo apresenta maior volume de vendas, enquanto o Rio de Janeiro possui pedidos de maior valor médio.
+**Leitura:** São Paulo apresenta maior volume de pedidos, enquanto o Rio de Janeiro possui pedidos de maior valor médio.
 
 ### 2. Estados remotos apresentam menor volume e maior ticket médio
 
@@ -244,7 +244,7 @@ Essa concentração se repete no nível municipal: a cidade de São Paulo possui
 
 Além disso, 4 das 10 cidades com maior número de clientes estão no estado de São Paulo.
 
-**Leitura:** São Paulo apresenta uma concentração relevante tanto na base de clientes quanto no faturamento, reforçando sua importância para a operação analisada.
+**Leitura:** A concentração de clientes em São Paulo acompanha sua liderança em faturamento, indicando forte concentração da operação nesse estado.
 
 ### 🔎 Questões para investigação
 
