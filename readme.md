@@ -90,8 +90,6 @@ A base reúne pedidos realizados entre **2016 e 2018**, permitindo analisar dife
 
 ---
 
----
-
 ## 🎯 Objetivo
 
 Transformar dados brutos em informações que permitam analisar:
@@ -173,6 +171,7 @@ O dashboard abrirá automaticamente no navegador em `http://localhost:8501`.
 ## 🔎 Tratamento e Preparação dos Dados
 
 Etapas de limpeza e transformação realizadas com Pandas: conversão de campos para `datetime`, tratamento de valores ausentes, padronização de nomes de cidades, relacionamento entre bases com `merge()`, agregações com `groupby()`, contagem de clientes únicos com `nunique()` e criação de métricas derivadas — organizadas em funções reutilizáveis dentro de `views/`.
+
 A pasta `Notebooks/` documenta essa etapa de exploração: é onde cada tratamento e métrica foi testado e validado antes de virar código definitivo em `views/`, servindo como registro do processo de análise por trás do dashboard.
 
 ---
@@ -186,6 +185,7 @@ Valor total associado aos pedidos considerados na análise.
 ```
 Ticket Médio = Faturamento Total / Total de Pedidos
 ```
+
 ### Clientes Únicos
 Quantidade distinta de clientes identificados por `customer_unique_id`.
 
@@ -200,22 +200,65 @@ A evolução acumulada considera cada cliente apenas uma vez e utiliza seu prime
 
 ---
 
-## 💡 Insights Possíveis
+## 💡 Principais Insights
 
-A estrutura dos dashboards permite explorar diferentes aspectos do negócio. Alguns achados encontrados ao navegar pelos dados:
+A navegação pelos dashboards permitiu identificar alguns padrões relevantes no comportamento de vendas, clientes e logística da Olist.
 
-- **São Paulo concentra o maior volume, mas não o maior valor por pedido.** O estado fatura R$ 5,77 mi contra R$ 2,06 mi do Rio de Janeiro (2º colocado) — quase 3x mais —, porém com ticket médio 14% *menor* (R$ 142,47 vs R$ 166,45). Isso sugere que SP vende mais em quantidade, enquanto o RJ vende, em média, itens de maior valor por pedido.
+### 1. São Paulo lidera em faturamento, mas apresenta ticket médio menor
 
-- **Regiões remotas compram menos, mas gastam mais por pedido — e esperam mais para receber.** O Acre tem apenas 80 pedidos registrados no período (o menor volume entre os estados), mas o maior ticket médio dos três analisados (R$ 244,83) e o prazo de entrega mais longo (21 dias, mais que o dobro de São Paulo). Esse padrão é comum em estados distantes dos centros de distribuição: poucas compras, de maior valor, possivelmente pra compensar o custo e o tempo do frete.
+São Paulo concentra o maior faturamento, com R$ 5,77 milhões, quase três vezes o valor registrado pelo Rio de Janeiro, que ocupa a segunda posição (R$ 2,06 milhões).
 
-- **A categoria líder em faturamento não é a que mais vende em volume.** "Beleza Saude" fatura mais que "Cama Mesa Banho" (R$ 1,41 mi vs R$ 1,23 mi) apesar de ter menos pedidos (8.647 vs 9.272) — o ticket médio 24% maior (R$ 163,30 vs R$ 132,14) compensa a diferença de volume. "Relogios Presentes" reforça o padrão: é a categoria com menor volume entre o Top 5 (5.495 pedidos), mas o maior ticket médio (R$ 230,09), garantindo a 2ª posição em faturamento.
+Apesar disso, o ticket médio paulista é 14% menor: R$ 142,47 contra R$ 166,45 no Rio de Janeiro.
 
-- **São Paulo concentra a base de clientes na mesma proporção que concentra vendas.** Dos 96.096 clientes totais, 40.302 (42%) estão em SP — mais de 3x o Rio de Janeiro (12.384). A concentração se repete por cidade: a capital paulista tem 14.984 clientes (quase 4x a cidade do Rio, com 6.620), e 4 das 10 cidades com mais clientes do país estão no estado de São Paulo.
+**Leitura:** São Paulo apresenta maior volume de vendas, enquanto o Rio de Janeiro possui pedidos de maior valor médio.
 
-- A estrutura do dashboard também permite investigar outras questões de negócio, como:
-  - Se o prazo de entrega mais longo em estados remotos afeta a taxa de cancelamento;
-  - Como o ticket médio evolui mês a mês dentro de uma mesma categoria;
-  - Se a concentração de clientes em SP se mantém estável ao longo dos anos ou está mudando.
+### 2. Estados remotos apresentam menor volume e maior ticket médio
+
+O Acre registra apenas 80 pedidos, o menor volume entre os estados analisados. Em contrapartida, apresenta o maior ticket médio, de R$ 244,83, acompanhado pelo maior prazo médio de entrega: 21 dias.
+
+Para comparação, São Paulo apresenta prazo médio de 8,7 dias.
+
+**Leitura:** os dados mostram uma combinação de baixo volume, maior valor por pedido e maior prazo de entrega em estados mais distantes dos principais centros de distribuição.
+
+**Hipótese a investigar:** a distância logística pode estar relacionada ao comportamento observado de ticket e prazo, mas essa relação exigiria uma análise adicional para ser confirmada.
+
+### 3. A categoria com maior faturamento não é a que possui maior volume
+
+A categoria Beleza Saúde lidera em faturamento, com R$ 1,41 milhão, superando Cama Mesa Banho, que registra R$ 1,23 milhão.
+
+Entretanto, Cama Mesa Banho possui maior volume de pedidos (9.272 contra 8.647).
+
+A diferença é explicada pelo ticket médio: R$ 163,30 em Beleza Saúde contra R$ 132,14 em Cama Mesa Banho.
+
+O comportamento também aparece em Relógios Presentes, que possui o menor volume entre as cinco principais categorias (5.495 pedidos), mas apresenta o maior ticket médio (R$ 230,09), alcançando a segunda posição em faturamento.
+
+**Leitura:** volume de pedidos, isoladamente, não determina o faturamento. O valor médio dos pedidos exerce papel importante no desempenho das categorias.
+
+### 4. A concentração de clientes acompanha a concentração das vendas
+
+São Paulo possui 40.302 dos 96.096 clientes, representando aproximadamente 42% da base total.
+
+O estado também apresenta forte vantagem sobre o Rio de Janeiro, que possui 12.384 clientes.
+
+Essa concentração se repete no nível municipal: a cidade de São Paulo possui 14.984 clientes, quase quatro vezes o número registrado pela cidade do Rio de Janeiro (6.620).
+
+Além disso, 4 das 10 cidades com maior número de clientes estão no estado de São Paulo.
+
+**Leitura:** São Paulo apresenta uma concentração relevante tanto na base de clientes quanto no faturamento, reforçando sua importância para a operação analisada.
+
+### 🔎 Questões para investigação
+
+Além dos padrões identificados, os dashboards permitem explorar novas hipóteses de negócio:
+
+- **Logística:** estados com maior prazo médio de entrega apresentam também maiores taxas de cancelamento?
+- **Categorias:** como o ticket médio de cada categoria evolui ao longo do tempo?
+- **Clientes:** a participação de São Paulo na base de clientes permanece estável ou apresenta mudanças ao longo dos anos?
+- **Faturamento:** estados com maior ticket médio também apresentam maior receita por cliente?
+- **Experiência de compra:** existe relação entre prazo de entrega e comportamento de compra dos clientes?
+
+### 🎯 Conclusão
+
+Os dados mostram que volume de pedidos, ticket médio, localização dos clientes e desempenho logístico não necessariamente caminham na mesma direção. A análise conjunta dessas dimensões permite identificar diferenças importantes entre estados e categorias que poderiam passar despercebidas ao observar apenas o faturamento total.
 
 ---
 
@@ -223,12 +266,12 @@ A estrutura dos dashboards permite explorar diferentes aspectos do negócio. Alg
 
 Como evolução do projeto, algumas possibilidades são:
 
-- Evoluir o projeto para uma estrutura de **pipeline de dados**, automatizando as etapas de ingestão, tratamento e disponibilização dos dados;
-- Centralizar funções de formatação e estilo (hoje replicadas entre as páginas) em um módulo `utils/` compartilhado;
-- Aprofundar as análises realizadas no dashboard;
-- Incluir novos indicadores de negócio;
-- Explorar análises de comportamento e recorrência dos clientes;
-- Aplicar os conhecimentos adquiridos nos estudos de Engenharia de Dados para evoluir a arquitetura do projeto.
+- Aprofundar as análises de comportamento e recorrência dos clientes;
+- Explorar novas métricas e indicadores de negócio;
+- Investigar relações entre desempenho logístico e comportamento de compra;
+- Centralizar funções de formatação e estilo em um módulo `utils/`;
+- Evoluir a preparação dos dados para uma estrutura mais automatizada de processamento;
+- Aplicar conceitos de Engenharia de Dados estudados em projetos futuros, explorando etapas como ingestão, transformação, armazenamento e orquestração de dados.
 
 ---
 
@@ -238,28 +281,30 @@ Como evolução do projeto, algumas possibilidades são:
 olistpython/
 │
 ├── assets/
-│   ├── painel_executivo.png
-│   ├── desempenho_categorias.png
-│   └── analise_clientes.png
+│   ├── painel_executivo_1.png ... painel_executivo_4.png
+│   ├── desempenho_categorias_1.png ... desempenho_categorias_4.png
+│   └── analise_clientes_1.png ... analise_clientes_4.png
 │
 ├── dados/
 │   ├── pedidos_limpo.csv
 │   ├── clientes_limpo.csv
 │   ├── itens_limpo.csv
 │   ├── pagamentos_limpo.csv
-│   └── produtos_limpo.csv
+│   ├── produtos_limpo.csv
+│   └── brazil_states.geojson
 │
 ├── Notebooks/
 │   └── Análises e exploração dos dados
 │
 ├── pages/
-│   ├── 1_Painel_Executivo.py
-│   ├── 2_Desempenho_Categorias.py
-│   └── 3_Analise_Clientes.py
+│   ├── 1_📊_Painel_Executivo.py
+│   ├── 2_🏆_Desempenho_Categorias.py
+│   └── 3_👥_Analise_Clientes.py
 │
 ├── views/
 │   └── Funções de preparação das bases
 │
+├── .gitignore
 ├── Inicio.py
 ├── requirements.txt
 └── README.md
