@@ -110,54 +110,13 @@ Transformar dados brutos em informações que permitam analisar:
 O projeto está dividido em três visões principais.
 
 ### 1. 📊 Painel Executivo
-
-Visão geral dos principais indicadores de desempenho do negócio.
-
-**Principais métricas:**
-- Faturamento total;
-- Total de pedidos;
-- Ticket médio;
-- Prazo médio de entrega.
-
-**Análises:**
-- Mapa interativo de receita por estado;
-- Evolução mensal do faturamento;
-- Análise Month-over-Month (MoM);
-- Ranking das principais categorias.
+Visão geral do negócio: **faturamento total, total de pedidos, ticket médio e prazo médio de entrega**, com mapa interativo de receita por estado, evolução mensal do faturamento, análise Month-over-Month (MoM) e ranking das principais categorias.
 
 ### 2. 🏆 Desempenho das Categorias
-
-Análise do desempenho comercial das categorias de produtos.
-
-**Principais métricas:**
-- Faturamento;
-- Ticket médio por pedido;
-- Quantidade de itens vendidos;
-- Preço médio por item.
-
-**Análises:**
-- Top 10 categorias por faturamento;
-- Comparação de volume e receita entre categorias;
-- Evolução mensal do ticket médio;
-- Resumo consolidado por categoria.
+Desempenho comercial por categoria: **faturamento, ticket médio, itens vendidos e preço médio por item**, com Top 10 categorias por faturamento, evolução mensal do ticket médio e resumo consolidado por categoria.
 
 ### 3. 👥 Clientes e Pedidos
-
-Análise da distribuição geográfica e evolução da base de clientes.
-
-A identificação dos clientes utiliza `customer_unique_id`, permitindo contabilizar corretamente clientes únicos mesmo quando um mesmo cliente realizou múltiplos pedidos.
-
-**Principais métricas:**
-- Total de clientes únicos;
-- Clientes com pedidos entregues;
-- Clientes com pedidos cancelados;
-- Clientes com pedidos faturados.
-
-**Análises:**
-- Top 10 estados por clientes;
-- Top 10 cidades por clientes;
-- Evolução acumulada da base de clientes;
-- Distribuição de clientes por status dos pedidos.
+Distribuição geográfica e evolução da base de clientes, usando `customer_unique_id` para contabilizar corretamente clientes com múltiplos pedidos. Traz **total de clientes, entregues, cancelados e faturados**, Top 10 estados e cidades, evolução acumulada da base e distribuição por status de pedido.
 
 > Um mesmo cliente pode aparecer em mais de um status caso tenha realizado pedidos com situações diferentes.
 
@@ -188,57 +147,33 @@ O dashboard abrirá automaticamente no navegador em `http://localhost:8501`.
 
 ## 🚀 Destaques Técnicos
 
-### 🎨 Design Executivo
-Interface desenvolvida com foco em **clareza visual, redução de ruídos e Data Storytelling**, utilizando uma identidade visual consistente entre as páginas.
-
-### 🔎 Filtros Interativos
-Os dashboards possuem filtros por **ano e estado**, permitindo explorar diferentes recortes da base de dados.
-
-### 🗺️ Cross-Filtering Geográfico
-O mapa interativo da visão executiva utiliza `st.session_state` para permitir a seleção de estados e atualização dinâmica das análises relacionadas.
-
-### 🇧🇷 Formatação PT-BR
-Valores monetários e quantitativos são apresentados seguindo o padrão brasileiro, incluindo formatação de moeda, milhares e números inteiros.
-
-### ⚡ Performance
-Utilização de `@st.cache_data` para evitar o recarregamento desnecessário dos dados e melhorar a performance da aplicação.
-
-### 👥 Clientes Únicos
-Utilização de `customer_unique_id` em análises de clientes para evitar a contagem duplicada de consumidores que realizaram múltiplos pedidos.
-
-### 🧩 Organização do Código
-As transformações e preparações das bases foram organizadas em funções reutilizáveis dentro da estrutura `views/`, separando a preparação dos dados da camada de apresentação dos dashboards.
+- **🎨 Design Executivo** — interface com foco em clareza visual, redução de ruídos e Data Storytelling, com identidade consistente entre as páginas
+- **🔎 Filtros Interativos** — filtros por ano e estado em todas as páginas, permitindo explorar diferentes recortes da base
+- **🗺️ Cross-Filtering Geográfico** — o mapa da visão executiva usa `st.session_state` para atualizar dinamicamente as análises conforme o estado clicado
+- **🇧🇷 Formatação PT-BR** — valores monetários e quantitativos seguem o padrão brasileiro de moeda e separadores
+- **⚡ Performance** — uso de `@st.cache_data` para evitar recarregamento desnecessário dos dados
+- **👥 Clientes Únicos** — uso de `customer_unique_id` para evitar contagem duplicada de clientes com múltiplos pedidos
+- **🧩 Organização do Código** — transformações e agregações centralizadas em `views/`, separando dados da apresentação
 
 ---
 
-| Tecnologia     | Utilização                                                             |
-| -------------- | ---------------------------------------------------------------------- |
-| **Python**     | Desenvolvimento da aplicação e tratamento dos dados                    |
-| **Pandas**     | Manipulação, transformação, agrupamento e análise dos dados            |
-| **NumPy**      | Operações e suporte ao processamento dos dados                         |
-| **Plotly**     | Criação de gráficos e mapas interativos no dashboard                   |
-| **Matplotlib** | Aplicação de gradientes de cores nas tabelas do dashboard              |
-| **Streamlit**  | Desenvolvimento da interface e filtros interativos                     |
-| **Git/GitHub** | Versionamento e documentação do projeto                                |
+| Tecnologia     | Utilização                                                   |
+| -------------- | ------------------------------------------------------------ |
+| **Python**     | Desenvolvimento da aplicação e tratamento dos dados           |
+| **Pandas**     | Manipulação, transformação, agrupamento e análise dos dados   |
+| **NumPy**      | Operações e suporte ao processamento dos dados                |
+| **Plotly**     | Criação de gráficos e mapas interativos no dashboard          |
+| **Matplotlib** | Aplicação de gradientes de cores nas tabelas do dashboard      |
+| **Streamlit**  | Desenvolvimento da interface e filtros interativos             |
+| **Git/GitHub** | Versionamento e documentação do projeto                        |
 | **IA**         | Apoio na revisão de código, refatoração e boas práticas de organização |
 
 ---
 
 ## 🔎 Tratamento e Preparação dos Dados
 
-Durante o desenvolvimento foram realizadas etapas de limpeza, transformação e preparação dos dados utilizando Pandas.
-
-Principais tratamentos realizados:
-
-- Conversão de campos para `datetime`;
-- Tratamento de valores ausentes;
-- Padronização dos nomes de cidades;
-- Relacionamento entre diferentes bases utilizando `merge()`;
-- Agrupamentos e agregações utilizando `groupby()`;
-- Contagem de clientes únicos utilizando `nunique()`;
-- Criação de métricas derivadas;
-- Organização das transformações em funções reutilizáveis;
-- Reutilização das bases para reduzir operações repetitivas.
+Etapas de limpeza e transformação realizadas com Pandas: conversão de campos para `datetime`, tratamento de valores ausentes, padronização de nomes de cidades, relacionamento entre bases com `merge()`, agregações com `groupby()`, contagem de clientes únicos com `nunique()` e criação de métricas derivadas — organizadas em funções reutilizáveis dentro de `views/`.
+A pasta `Notebooks/` documenta essa etapa de exploração: é onde cada tratamento e métrica foi testado e validado antes de virar código definitivo em `views/`, servindo como registro do processo de análise por trás do dashboard.
 
 ---
 
@@ -251,7 +186,6 @@ Valor total associado aos pedidos considerados na análise.
 ```
 Ticket Médio = Faturamento Total / Total de Pedidos
 ```
-
 ### Clientes Únicos
 Quantidade distinta de clientes identificados por `customer_unique_id`.
 
@@ -268,34 +202,20 @@ A evolução acumulada considera cada cliente apenas uma vez e utiliza seu prime
 
 ## 💡 Insights Possíveis
 
-A estrutura dos dashboards permite explorar diferentes aspectos do negócio, como:
+A estrutura dos dashboards permite explorar diferentes aspectos do negócio. Alguns achados encontrados ao navegar pelos dados:
 
-- Identificação das regiões com maior concentração de clientes e maior volume de vendas;
-- Identificação das categorias com maior participação no faturamento;
-- Comparação entre volume de pedidos, quantidade de itens e receita;
-- Acompanhamento da evolução da base de clientes;
-- Análise da distribuição de clientes entre diferentes status de pedidos;
-- Comparação entre indicadores comerciais e operacionais.
+- **São Paulo concentra o maior volume, mas não o maior valor por pedido.** O estado fatura R$ 5,77 mi contra R$ 2,06 mi do Rio de Janeiro (2º colocado) — quase 3x mais —, porém com ticket médio 14% *menor* (R$ 142,47 vs R$ 166,45). Isso sugere que SP vende mais em quantidade, enquanto o RJ vende, em média, itens de maior valor por pedido.
 
----
+- **Regiões remotas compram menos, mas gastam mais por pedido — e esperam mais para receber.** O Acre tem apenas 80 pedidos registrados no período (o menor volume entre os estados), mas o maior ticket médio dos três analisados (R$ 244,83) e o prazo de entrega mais longo (21 dias, mais que o dobro de São Paulo). Esse padrão é comum em estados distantes dos centros de distribuição: poucas compras, de maior valor, possivelmente pra compensar o custo e o tempo do frete.
 
-## 🧠 Principais Aprendizados
+- **A categoria líder em faturamento não é a que mais vende em volume.** "Beleza Saude" fatura mais que "Cama Mesa Banho" (R$ 1,41 mi vs R$ 1,23 mi) apesar de ter menos pedidos (8.647 vs 9.272) — o ticket médio 24% maior (R$ 163,30 vs R$ 132,14) compensa a diferença de volume. "Relogios Presentes" reforça o padrão: é a categoria com menor volume entre o Top 5 (5.495 pedidos), mas o maior ticket médio (R$ 230,09), garantindo a 2ª posição em faturamento.
 
-O desenvolvimento deste projeto permitiu aplicar conceitos importantes de **Data Analytics**, incluindo:
+- **São Paulo concentra a base de clientes na mesma proporção que concentra vendas.** Dos 96.096 clientes totais, 40.302 (42%) estão em SP — mais de 3x o Rio de Janeiro (12.384). A concentração se repete por cidade: a capital paulista tem 14.984 clientes (quase 4x a cidade do Rio, com 6.620), e 4 das 10 cidades com mais clientes do país estão no estado de São Paulo.
 
-- Exploração e tratamento de dados;
-- Manipulação de DataFrames com Pandas;
-- Relacionamento entre diferentes bases;
-- Criação e validação de métricas de negócio;
-- `groupby()` e agregações;
-- `merge()` e relacionamento entre tabelas;
-- `nunique()` para identificação de clientes únicos;
-- Análise temporal;
-- Criação de indicadores;
-- Visualização de dados;
-- Desenvolvimento de dashboards interativos;
-- Organização de código em funções reutilizáveis;
-- Versionamento utilizando Git e GitHub.
+- A estrutura do dashboard também permite investigar outras questões de negócio, como:
+  - Se o prazo de entrega mais longo em estados remotos afeta a taxa de cancelamento;
+  - Como o ticket médio evolui mês a mês dentro de uma mesma categoria;
+  - Se a concentração de clientes em SP se mantém estável ao longo dos anos ou está mudando.
 
 ---
 

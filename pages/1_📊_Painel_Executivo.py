@@ -386,8 +386,12 @@ df_mapa["ticket_medio"] = (df_mapa["receita_total"] / df_mapa["total_pedidos"]).
 # O geojson traz os contornos geográficos dos estados brasileiros,
 # necessários para o Plotly desenhar o mapa (a base de dados em si
 # só tem a sigla do estado, sem coordenadas).
+#
+# Carregado localmente em vez de buscado por URL, para não depender
+# de um servidor externo estar disponível no momento do carregamento.
+
 with open("dados/brazil_states.geojson", "r", encoding="utf-8") as f:
-       geojson_brasil = json.load(f)
+    geojson_brasil = json.load(f)
 
 fig_mapa = px.choropleth(
     df_mapa,
