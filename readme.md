@@ -258,7 +258,7 @@ Além dos padrões identificados, os dashboards permitem explorar novas hipótes
 
 ### 🎯 Conclusão
 
-Os dados mostram que volume de pedidos, ticket médio, localização dos clientes e desempenho logístico não necessariamente caminham na mesma direção. A análise conjunta dessas dimensões permite identificar diferenças importantes entre estados e categorias que que poderiam não ser percebidas ao analisar apenas o faturamento total.
+Os dados mostram que volume de pedidos, ticket médio, localização dos clientes e desempenho logístico não necessariamente caminham na mesma direção. A análise conjunta dessas dimensões permite identificar diferenças importantes entre estados e categorias que poderiam não ser percebidas ao analisar apenas o faturamento total.
 
 ---
 
