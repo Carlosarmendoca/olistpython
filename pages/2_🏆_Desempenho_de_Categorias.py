@@ -265,14 +265,14 @@ else:
     ticket_medio = 0
 
 if total_itens > 0:
-
-    # O preço médio do item considera receita total,
-    # incluindo o frete, conforme a regra atual da página.
-    preco_medio_item = round(receita_total / total_itens,2)
-
+    # Preço médio do item considera apenas o valor dos produtos,
+    # sem incluir o frete.
+    preco_medio_item = round(
+        df_categorias["receita_produtos"].sum() / total_itens,
+        2
+    )
 else:
     preco_medio_item = 0
-
 
 # ============================================================
 # EXIBIÇÃO DOS KPIs
